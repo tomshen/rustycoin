@@ -15,7 +15,7 @@ title: Home
 	{% for post in paginator.posts %}
 		<div>
 			<span class="post-date">{{ post.date | date_to_long_string }}</span>
-			<h1><a href="{{ post.url }}">{{ post.title }}</a></h1>
+			<h1><a href="{{ site.url }}{{ post.url }}">{{ post.title }}</a></h1>
 			<p class="post-description">{{ post.content | strip_html | truncatewords: 50 }}</p>
 		</div>
 		<br>
@@ -23,17 +23,17 @@ title: Home
 </div>
 <nav class="pagination" role="navigation">
 	{% if paginator.next_page %}
-		<a class="newer-posts" href="/page{{paginator.next_page}}">&larr; Older posts</a>
+		<a class="newer-posts" href="{{ site.url }}/page{{paginator.next_page}}">&larr; Older posts</a>
 	{% endif %}
 	<span class="page-number">Page {{ paginator.page }} of {{ paginator.total_pages }}</span>
 	{% if paginator.previous_page %}
 		{% if paginator.page == 2 %}
 			<a class="older-posts" href="/">Newer posts &rarr;</a>
 		{% else %}
-			<a class="older-posts" href="/page{{paginator.previous_page}}">Newer posts &rarr;</a>
+			<a class="older-posts" href="{{ site.url }}/page{{paginator.previous_page}}">Newer posts &rarr;</a>
 		{% endif %}
 	{% endif %}
 </nav>
-<footer class="clean" style="background-image: url({{ site.cover }}); background-position: bottom; height: 60px;">
+<footer class="clean" style="background-image: url({{ site.url }}{{ site.cover }}); background-position: bottom; height: 60px;">
 	<p class="copyright">&copy;{{ site.time | date: "%Y" }}, <a href="{{ site.copyright.url }}" target="_blank">{{ site.copyright.author }}</a>. <a href="{{ site.copyright.type_url }}" target="_blank">{{ site.copyright.type_title }}</a>.</p>
 </footer>
