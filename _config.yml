@@ -5,7 +5,7 @@ redcarpet:
   extensions: ["no_intra_emphasis", "fenced_code_blocks", "autolink", "tables", "with_toc_data"]
 
 # Permalinks
-permalink:	/rustycoin/:title
+permalink:	/:title
 
 # Setup
 title:		RustyCoin
@@ -15,13 +15,15 @@ url:		http://www.tomshen.me/rustycoin
 
 author:
   name:		'Tom Shen'
-  url:		http://www.tomshen.me
+  url:		http://www.tomshen.me/
 
 paginate:	5
 
+baseurl: '/rustycoin'
+
 # Custom vars
-icon:		/rustycoin/assets/images/icon.png
-cover:		/rustycoin/assets/images/cover.jpg
+icon:		/assets/images/icon.png
+cover:		/assets/images/cover.jpg
 
 social:
   - icon:	github
@@ -30,10 +32,10 @@ social:
 
 menu:
   - title:	Home
-    url:	/rustycoin
+    url:	/
 
   - title:	About
-    url:	/rustycoin/about.html
+    url:	/about.html
 
 copyright:
   author:	Tom Shen
