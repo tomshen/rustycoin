@@ -4,7 +4,7 @@
  <title>RustyCoin</title>
  <link href="http://www.tomshen.me/rustycoin/atom.xml" rel="self"/>
  <link href="http://www.tomshen.me/rustycoin/"/>
- <updated>2014-04-02T21:52:47-04:00</updated>
+ <updated>2014-04-02T21:55:37-04:00</updated>
  <id>http://www.tomshen.me/rustycoin</id>
  <author>
    <name>Tom Shen</name>
@@ -14,9 +14,9 @@
  
  <entry>
    <title>Initial Proposal</title>
-   <link href="http://www.tomshen.me/rustycoin/blog/intial-proposal"/>
+   <link href="http://www.tomshen.me/rustycoin/rustycoin/intial-proposal"/>
    <updated>2014-04-02T16:45:54-04:00</updated>
-   <id>http://www.tomshen.me/rustycoin/blog/intial-proposal</id>
+   <id>http://www.tomshen.me/rustycoin/rustycoin/intial-proposal</id>
    <content type="html">&lt;h1 id=&quot;toc_0&quot;&gt;Summary&lt;/h1&gt;
 
 &lt;p&gt;The goal of this project is to create the first open source Riecoin GPU miner. We plan on first implementing a simple serial CPU version, based on David Andersen&amp;#39;s &lt;a href=&quot;https://github.com/dave-andersen/fastrie&quot;&gt;CPU miner&lt;/a&gt;. Then, we plan on parallelizing on a single machine using &lt;a href=&quot;https://github.com/luqmana/rust-opencl&quot;&gt;OpenCL&lt;/a&gt;. Finally, if we have time, we plan on parallelizing across multiple machines.&lt;/p&gt;
