@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Initial Proposal"
+title:  "15-418 S14 Final Project - Initial Proposal"
 date:   2014-04-02 20:45:54
 image: false
 video: false

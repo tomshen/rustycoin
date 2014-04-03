@@ -31,10 +31,10 @@ social:
 
 menu:
   - title:	Home
-    url:	/
+    url:	/rustycoin/
 
   - title:	About
-    url:	/about.html
+    url:	/rustycoin/about.html
 
 copyright:
   author:	Tom Shen
