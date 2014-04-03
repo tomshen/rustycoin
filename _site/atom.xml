@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+ <title>RustyCoin</title>
+ <link href="http://www.tomshen.me/rustycoin/atom.xml" rel="self"/>
+ <link href="http://www.tomshen.me/rustycoin/"/>
+ <updated>2014-04-02T21:52:47-04:00</updated>
+ <id>http://www.tomshen.me/rustycoin</id>
+ <author>
+   <name>Tom Shen</name>
+   <email></email>
+ </author>
+
+ 
+ <entry>
+   <title>Initial Proposal</title>
+   <link href="http://www.tomshen.me/rustycoin/blog/intial-proposal"/>
+   <updated>2014-04-02T16:45:54-04:00</updated>
+   <id>http://www.tomshen.me/rustycoin/blog/intial-proposal</id>
+   <content type="html">&lt;h1 id=&quot;toc_0&quot;&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;The goal of this project is to create the first open source Riecoin GPU miner. We plan on first implementing a simple serial CPU version, based on David Andersen&amp;#39;s &lt;a href=&quot;https://github.com/dave-andersen/fastrie&quot;&gt;CPU miner&lt;/a&gt;. Then, we plan on parallelizing on a single machine using &lt;a href=&quot;https://github.com/luqmana/rust-opencl&quot;&gt;OpenCL&lt;/a&gt;. Finally, if we have time, we plan on parallelizing across multiple machines.&lt;/p&gt;
+
+&lt;h1 id=&quot;toc_1&quot;&gt;Background&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://riecoin.org&quot;&gt;Riecoin&lt;/a&gt; is a decentralized digital currency, similar to Bitcoin. It differs from Bitcoin in that its proof of work algorithm actually does something useful, rather than just check for sha256 collisions. In particular, the proof of work is based on finding a prime &amp;quot;constellation&amp;quot;: a sextuplet of &amp;quot;consecutive&amp;quot; prime numbers (a sequence of primes of the form &lt;em&gt;n, n+4, n+6, n+10, n+12, n+16&lt;/em&gt;). This prime constellation must be within a certain given range.&lt;/p&gt;
+
+&lt;p&gt;Currently, there exists a parallel CPU miner for Riecoin, as we mentioned in the summary. However, it is a very naive implementation due to not sharing data between threads. Additionally, GPU miners for digital currencies tend to perform much better due to how parallelizable most proofs of work are. However, an open source GPU miner does not currently exist for Riecoin.&lt;/p&gt;
+
+&lt;h1 id=&quot;toc_2&quot;&gt;Challenge&lt;/h1&gt;
+
+&lt;p&gt;The search range for the prime constellations starts at very large numbers: when Riecoin first launched, the target (start) number was 304-bits long, and the difficulty has been increasing ever since then. Additionally, since a new block is available every 2.5 minutes (and thus a new target number and limit), any miner must be able to search for and verify primality of large primes very quickly. This is where parallelization comes in.&lt;/p&gt;
+
+&lt;p&gt;The current state-of-the-art miner uses &lt;a href=&quot;http://en.wikipedia.org/wiki/Wheel_factorization&quot;&gt;wheel factorization&lt;/a&gt; to find primes. Our primary challenge (after successfully implementing this algorithm sequentially) is to find places where we can improve on and parallelize this algorithm.&lt;/p&gt;
+
+&lt;h1 id=&quot;toc_3&quot;&gt;Resources&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.rust-lang.org/&quot;&gt;Rust&lt;/a&gt; - safe, concurrent systems programming language&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.khronos.org/opencl/&quot;&gt;OpenCL&lt;/a&gt; - GPU computation framework
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/luqmana/rust-opencl&quot;&gt;rust-opencl&lt;/a&gt; - OpenCL bindings for Rust&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/dave-andersen/fastrie&quot;&gt;fastrie&lt;/a&gt; - Riecoin CPU minter&lt;/li&gt;
+&lt;li&gt;David Andersen - both consulting with him in person and his blog posts (e.g. &lt;a href=&quot;http://da-data.blogspot.com/2014/03/fast-prime-cluster-search-or-building.html&quot;&gt;his post on fast prime cluster searching&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;GHC 3000 machines&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;toc_4&quot;&gt;Goals &amp;amp; Deliverables&lt;/h1&gt;
+
+&lt;h2 id=&quot;toc_5&quot;&gt;Plan to achieve&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Implement a sequential Riecoin proof of work algorithm&lt;/li&gt;
+&lt;li&gt;Use GPU for parallel prime cluster searching&lt;/li&gt;
+&lt;li&gt;Achieve better performance than CPU miner on a GHC machine&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;toc_6&quot;&gt;Hope to achieve&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Parallelize rest of computation (fast prime verification)&lt;/li&gt;
+&lt;li&gt;Implement complete Riecoin miner&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;toc_7&quot;&gt;Platform&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;We plan to implement our miner in Rust, because it runs nearly as fast as C++ while also cleanly including many higher-level language features.&lt;/li&gt;
+&lt;li&gt;We will use OpenCL for GPU computation because there exists bindings for it in Rust (as opposed to CUDA).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;toc_8&quot;&gt;Proposed Schedule&lt;/h1&gt;
+
+&lt;table&gt;&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Week&lt;/th&gt;
+&lt;th&gt;What We Plan to Do&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Mar. 30 - Apr. 5&lt;/td&gt;
+&lt;td&gt;Choose project idea, write initial proposal&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Apr. 6 - Apr. 12&lt;/td&gt;
+&lt;td&gt;Implement sequential, CPU-based proof of work algorithm&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Apr. 13 - Apr. 19&lt;/td&gt;
+&lt;td&gt;Add parallelization by moving prime cluster searching computation to GPU, project checkpoint&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Apr. 20 - Apr. 26&lt;/td&gt;
+&lt;td&gt;Improve algorithm and look for more areas of parallelization, parallelize prime verification&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Apr. 27 - May 3&lt;/td&gt;
+&lt;td&gt;Implement complete miner&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;May 4 - May 9&lt;/td&gt;
+&lt;td&gt;Performance testing, bug fixing, final write up&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;&lt;/table&gt;
+</content>
+ </entry>
+ 
+
+</feed>

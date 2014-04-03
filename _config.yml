@@ -1,0 +1,42 @@
+# Dependencies
+markdown:	redcarpet
+pygments:	true
+redcarpet:
+  extensions: ["no_intra_emphasis", "fenced_code_blocks", "autolink", "tables", "with_toc_data"]
+
+# Permalinks
+permalink:	/blog/:title
+
+# Setup
+title:		RustyCoin
+tagline:	'15-418 S14 final project'
+description:	'A Riecoin GPU miner in Rust'
+url:		http://www.tomshen.me/rustycoin
+
+author:
+  name:		'Tom Shen'
+  url:		http://www.tomshen.me/
+
+paginate:	5
+
+# Custom vars
+icon:		/assets/images/icon.png
+cover:		/assets/images/cover.jpg
+
+social:
+  - icon:	github
+    url:	https://github.com/tomshen/rustycoin
+    desc:	Fork me on github
+
+menu:
+  - title:	Home
+    url:	/
+
+  - title:	About
+    url:	/about.html
+
+copyright:
+  author:	Tom Shen
+  url:		http://www.tomshen.me
+  type_title:	Some rights reserved
+  type_url:	http://creativecommons.org/licenses/by-nc/2.5
