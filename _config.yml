@@ -18,6 +18,7 @@ author:
   url:		http://www.tomshen.me/
 
 paginate:	5
+baseurl: /rustycoin
 
 # Custom vars
 icon:		/assets/images/icon.png
