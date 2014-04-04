@@ -22,12 +22,13 @@ The current state-of-the-art miner uses [wheel factorization](http://en.wikipedi
 
 Our main parallelization challenges are:
 * Find candidate primes with sieving in parallel
-  * Using OpenCL
+  * Using OpenCL rather than CUDA because of better support
   * Sharing information rather than repeating computation (which is what currently is done in the CPU miner)
 * Check primality of candidate primes in parallel
-  * Using OpenCL
+  * Finding and implementing a primality test that will benefit from parallelization
 * Parallelizing arbitrary-precision integer arithmetic
-  * (if we have extra time)
+  * Difficult to correctly implement in parallel
+  * Only if we have extra time
 
 # Resources
 * [Rust](http://www.rust-lang.org/) - safe, concurrent systems programming language
