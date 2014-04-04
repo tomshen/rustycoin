@@ -72,6 +72,15 @@
 
 <p>The current state-of-the-art miner uses <a href="http://en.wikipedia.org/wiki/Wheel_factorization">wheel factorization</a> to find primes. Our primary challenge (after successfully implementing this algorithm sequentially) is to find places where we can improve on and parallelize this algorithm.</p>
 
+<p>Our main parallelization challenges are:
+* Find candidate primes with sieving in parallel
+  * Using OpenCL
+  * Sharing information rather than repeating computation (which is what currently is done in the CPU miner)
+* Check primality of candidate primes in parallel
+  * Using OpenCL
+* Parallelizing arbitrary-precision integer arithmetic
+  * (if we have extra time)</p>
+
 <h1 id="toc_3">Resources</h1>
 
 <ul>
@@ -101,6 +110,7 @@
 <ul>
 <li>Parallelize rest of computation (fast prime verification)</li>
 <li>Implement complete Riecoin miner</li>
+<li>Parallelize arbitrary-precision integer arithmetic</li>
 </ul>
 
 <h1 id="toc_7">Platform</h1>

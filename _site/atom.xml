@@ -4,7 +4,7 @@
  <title>RustyCoin</title>
  <link href="http://www.tomshen.me/rustycoin/atom.xml" rel="self"/>
  <link href="http://www.tomshen.me/rustycoin/"/>
- <updated>2014-04-02T22:24:44-04:00</updated>
+ <updated>2014-04-04T15:29:05-04:00</updated>
  <id>http://www.tomshen.me/rustycoin</id>
  <author>
    <name>Tom Shen</name>
@@ -32,6 +32,15 @@
 &lt;p&gt;The search range for the prime constellations starts at very large numbers: when Riecoin first launched, the target (start) number was 304-bits long, and the difficulty has been increasing ever since then. Additionally, since a new block is available every 2.5 minutes (and thus a new target number and limit), any miner must be able to search for and verify primality of large primes very quickly. This is where parallelization comes in.&lt;/p&gt;
 
 &lt;p&gt;The current state-of-the-art miner uses &lt;a href=&quot;http://en.wikipedia.org/wiki/Wheel_factorization&quot;&gt;wheel factorization&lt;/a&gt; to find primes. Our primary challenge (after successfully implementing this algorithm sequentially) is to find places where we can improve on and parallelize this algorithm.&lt;/p&gt;
+
+&lt;p&gt;Our main parallelization challenges are:
+* Find candidate primes with sieving in parallel
+  * Using OpenCL
+  * Sharing information rather than repeating computation (which is what currently is done in the CPU miner)
+* Check primality of candidate primes in parallel
+  * Using OpenCL
+* Parallelizing arbitrary-precision integer arithmetic
+  * (if we have extra time)&lt;/p&gt;
 
 &lt;h1 id=&quot;toc_3&quot;&gt;Resources&lt;/h1&gt;
 
@@ -62,6 +71,7 @@
 &lt;ul&gt;
 &lt;li&gt;Parallelize rest of computation (fast prime verification)&lt;/li&gt;
 &lt;li&gt;Implement complete Riecoin miner&lt;/li&gt;
+&lt;li&gt;Parallelize arbitrary-precision integer arithmetic&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h1 id=&quot;toc_7&quot;&gt;Platform&lt;/h1&gt;

@@ -20,6 +20,15 @@ The search range for the prime constellations starts at very large numbers: when
 
 The current state-of-the-art miner uses [wheel factorization](http://en.wikipedia.org/wiki/Wheel_factorization) to find primes. Our primary challenge (after successfully implementing this algorithm sequentially) is to find places where we can improve on and parallelize this algorithm.
 
+Our main parallelization challenges are:
+* Find candidate primes with sieving in parallel
+  * Using OpenCL
+  * Sharing information rather than repeating computation (which is what currently is done in the CPU miner)
+* Check primality of candidate primes in parallel
+  * Using OpenCL
+* Parallelizing arbitrary-precision integer arithmetic
+  * (if we have extra time)
+
 # Resources
 * [Rust](http://www.rust-lang.org/) - safe, concurrent systems programming language
 * [OpenCL](https://www.khronos.org/opencl/) - GPU computation framework
@@ -37,6 +46,7 @@ The current state-of-the-art miner uses [wheel factorization](http://en.wikipedi
 ## Hope to achieve
 * Parallelize rest of computation (fast prime verification)
 * Implement complete Riecoin miner
+* Parallelize arbitrary-precision integer arithmetic
 
 # Platform
 * We plan to implement our miner in Rust, because it runs nearly as fast as C++ while also cleanly including many higher-level language features.
