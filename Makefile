@@ -3,3 +3,6 @@ all:
 
 clean:
 	rm primes
+
+test:
+	rustc --test primes.rs

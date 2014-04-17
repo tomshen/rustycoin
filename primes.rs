@@ -1,17 +1,23 @@
 extern crate num;
 extern crate rand;
-extern crate bignum = "bignum#0.1.0-pre";
+extern crate bignum = "bignum#0.1.1-pre";
 
 use bignum::{BigUint, ToBigUint,RandBigInt};
-use num::{div_mod_floor, Integer};
-use std::num::{Zero, One, pow};
+use num::{div_mod_floor, Integer, div_floor};
+use std::num::{Zero, One, pow, Float};
 use rand::task_rng;
+use std::vec::Vec;
+use std::iter;
+use std::ops;
+use std::iter::FromIterator;
 
 use std::os;
 
 fn to_biguint (i : u64) -> BigUint {
     i.to_biguint().unwrap()
 }
+
+
 
 // Source: https://gist.github.com/jsanders/8739134#file-generate_big_primes-rs-L35
 fn mod_exp(base: &BigUint, exponent: &BigUint, modulus: &BigUint) -> BigUint {
@@ -79,7 +85,7 @@ fn is_prime(n : &BigUint) -> bool {
         }
         true
     }
-
+   
     let mut rng = task_rng();
     for _ in range(0, num_trials) {
         let a = rng.gen_biguint_range(&two, n);
@@ -90,18 +96,98 @@ fn is_prime(n : &BigUint) -> bool {
     true
 }
 
+//http://rosettacode.org/wiki/Sieve_of_Eratosthenes#Rust
+fn int_sqrt(n: uint) -> uint {
+    (n as f64).sqrt() as uint
+}
+fn simple_sieve(limit: uint) -> ~[uint] {
+
+    if limit < 2 {
+        return ~[];
+    }
+ 
+    let mut primes = Vec::from_elem(limit + 1, true);
+ 
+    for prime in iter::range_inclusive(2, int_sqrt(limit) + 1) {
+        if *primes.get(prime) {
+            for multiple in iter::range_step(prime * prime, limit + 1, prime) {
+                *primes.get_mut(multiple) = false
+            }
+        }
+    }
+    iter::range_inclusive(2, limit).filter(|&n| *primes.get(n)).collect()
+}
+
+fn to_uint(n : &BigUint) -> uint {
+    5
+}
+
+fn wheel_factorization(n : &BigUint, m : uint) {
+    let one = to_biguint(1);
+    let zero = to_biguint(0);
+    let primes = simple_sieve(m);
+    let M = primes.iter().fold(1, |x, y| {x*(*y)});
+    let mut sieve = Vec::from_elem(M, true);
+    for p in primes.iter() {
+        *sieve.get_mut(p-1) = false;
+        for j in iter::range_step(*p*(*p), M+1, *p) {
+            *sieve.get_mut(j-1) = false;
+        }
+    }
+    let mut k : Vec<uint> = range(0, M).map(|x| {x+1}).filter(|x| {*sieve.get(*x)}).collect();
+    let N = n.clone();
+    let M = M.to_biguint().unwrap();
+    if N.mod_floor(&M) != zero { 
+        let N = N + M;
+    }
+    let N = N.div_floor(&M);
+    let maxP = int_sqrt(M*N);
+    let mut sieve : Vec<Vec<bool>> = (range(0, k.len()).map(|_| {Vec::from_elem(to_uint(&N), true)})).collect(); //eventually, make bigVecs
+    *sieve.get_mut(0).get_mut(0) = false;
+    let mut row = zero;
+    
+    while row < N{
+        let baseVal = M * row;
+        for subset in range(0, k.len()) {
+            if *sieve.get(subset).get(to_uint(&row)) {
+                let p = baseVal + k.get(subset).to_biguint().unwrap();
+                primes.push(p);
+                if p > maxP { continue }
+                
+            }
+        }
+        row = row + one;
+    }
+
+}
+
+
+
+#[test]
+fn sieve_is_correct() {
+    let v = simple_sieve(10);
+    assert!(v == ~[2, 3, 5, 7]);
+}
+
+#[test]
+fn tom_is_rude() {
+    assert!(true);
+}
+
 fn main () {
     let args : ~[~str] = os::args();
     if args.len() < 2 {
-        println!("You need to provide a natural number as an input argument.")
+        println!("You need to provide a natural number as an input argument.")     
     } else {
         match from_str::<BigUint>(args[1]) {
             Some(n) => {
                 let p : bool = is_prime(&n);
-                println!("{}", p);
+                 
+                println!("prime: {}", p);
             },
-            None => println!(
-                "You need to provide a natural number as an input argument.")
+            None => {
+                println!( "You need to provide a natural number as an input argument.")
+            }
         };
     }
 
