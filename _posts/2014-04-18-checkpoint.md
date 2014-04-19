@@ -8,8 +8,11 @@ comments: false
 
 # Current Progress
 We have completed a sequential Riecoin proof of work algorithm in Rust. The two main components we have implemented are the Rabin-Miller primality test and wheel factorization. These are the algorithms used by David Andersen in his [CPU miner](https://github.com/dave-andersen/fastrie). We researched other methods of prime verification and generation, but it seems that these are the most efficient for the large integers we are dealing with.
+
 We began by implementing these algorithms for bignums. However, we realized that a lot of the functionality we need for the miner is not yet implemented in the built-in Rust bignum library. For now, our algorithm assumes that we are dealing with unsigned 64 bit integers. In the next week, we plan to add the needed functionality to the bignum library, so that we can handle the large integers needed for the miner. 
+
 Also, we decided to use an external [Rust bignum library](https://github.com/jsanders/rust-bignum), after poor performance on Rabin-Miller with the built-in library. This improved performance on Rabin-Miller substantially. We will be modifying this library, rather than the built-in bignum library. 
+
 We have also written some unit tests for Rabin-Miller and wheel factorization. We will be using the built-in Rust unit testing. 
 
 # Challenges
