@@ -3,21 +3,15 @@ extern crate rand;
 extern crate bignum = "bignum#0.1.1-pre";
 
 use bignum::{BigUint, ToBigUint,RandBigInt};
-use num::{div_mod_floor, Integer, div_floor};
+use num::{div_mod_floor, Integer};
 use std::num::{Zero, One, pow, Float};
 use rand::task_rng;
 use std::vec::Vec;
 use std::iter;
-use std::ops;
-use std::iter::FromIterator;
-
-use std::os;
 
 fn to_biguint (i : u64) -> BigUint {
     i.to_biguint().unwrap()
 }
-
-
 
 // Source: https://gist.github.com/jsanders/8739134#file-generate_big_primes-rs-L35
 fn mod_exp(base: &BigUint, exponent: &BigUint, modulus: &BigUint) -> BigUint {
@@ -85,7 +79,7 @@ fn is_prime(n : &BigUint) -> bool {
         }
         true
     }
-   
+
     let mut rng = task_rng();
     for _ in range(0, num_trials) {
         let a = rng.gen_biguint_range(&two, n);
@@ -96,99 +90,101 @@ fn is_prime(n : &BigUint) -> bool {
     true
 }
 
-//http://rosettacode.org/wiki/Sieve_of_Eratosthenes#Rust
-fn int_sqrt(n: uint) -> uint {
-    (n as f64).sqrt() as uint
-}
-fn simple_sieve(limit: uint) -> ~[uint] {
-
-    if limit < 2 {
-        return ~[];
-    }
- 
-    let mut primes = Vec::from_elem(limit + 1, true);
- 
-    for prime in iter::range_inclusive(2, int_sqrt(limit) + 1) {
-        if *primes.get(prime) {
-            for multiple in iter::range_step(prime * prime, limit + 1, prime) {
-                *primes.get_mut(multiple) = false
-            }
+fn is_valid_pow(prime : &BigUint) -> bool {
+    for offset in Vec::from_slice([0, 4, 6, 10, 12, 16]).iter().map(
+        |&i| i.to_biguint().unwrap()) {
+        if !is_prime(&(prime + offset)) {
+            return false;
         }
     }
-    iter::range_inclusive(2, limit).filter(|&n| *primes.get(n)).collect()
+    true
 }
 
-fn to_uint(n : &BigUint) -> uint {
-    5
-}
+fn gen_prime(max_val : uint, verbose : bool) -> uint {
+    //http://rosettacode.org/wiki/Sieve_of_Eratosthenes#Rust
+    fn simple_sieve(limit: uint) -> ~[uint] {
+        #[inline]
+        fn int_sqrt(n: uint) -> uint { (n as f64).sqrt() as uint }
 
-fn wheel_factorization(n : &BigUint, m : uint) {
-    let one = to_biguint(1);
-    let zero = to_biguint(0);
-    let primes = simple_sieve(m);
-    let M = primes.iter().fold(1, |x, y| {x*(*y)});
-    let mut sieve = Vec::from_elem(M, true);
-    for p in primes.iter() {
-        *sieve.get_mut(p-1) = false;
-        for j in iter::range_step(*p*(*p), M+1, *p) {
-            *sieve.get_mut(j-1) = false;
+        if limit < 2 {
+            return ~[];
         }
-    }
-    let mut k : Vec<uint> = range(0, M).map(|x| {x+1}).filter(|x| {*sieve.get(*x)}).collect();
-    let N = n.clone();
-    let M = M.to_biguint().unwrap();
-    if N.mod_floor(&M) != zero { 
-        let N = N + M;
-    }
-    let N = N.div_floor(&M);
-    let maxP = int_sqrt(M*N);
-    let mut sieve : Vec<Vec<bool>> = (range(0, k.len()).map(|_| {Vec::from_elem(to_uint(&N), true)})).collect(); //eventually, make bigVecs
-    *sieve.get_mut(0).get_mut(0) = false;
-    let mut row = zero;
-    
-    while row < N{
-        let baseVal = M * row;
-        for subset in range(0, k.len()) {
-            if *sieve.get(subset).get(to_uint(&row)) {
-                let p = baseVal + k.get(subset).to_biguint().unwrap();
-                primes.push(p);
-                if p > maxP { continue }
-                
+
+        let mut primes = Vec::from_elem(limit + 1, true);
+
+        for prime in iter::range_inclusive(2, int_sqrt(limit) + 1) {
+            if *primes.get(prime) {
+                for multiple in iter::range_step(prime * prime, limit + 1, prime) {
+                    *primes.get_mut(multiple) = false
+                }
             }
         }
-        row = row + one;
+        iter::range_inclusive(2, limit).filter(|&n| *primes.get(n)).collect()
     }
 
-}
-
-
-
-#[test]
-fn sieve_is_correct() {
-    let v = simple_sieve(10);
-    assert!(v == ~[2, 3, 5, 7]);
-}
-
-#[test]
-fn tom_is_rude() {
-    assert!(true);
-}
-
-fn main () {
-    let args : ~[~str] = os::args();
-    if args.len() < 2 {
-        println!("You need to provide a natural number as an input argument.")     
-    } else {
-        match from_str::<BigUint>(args[1]) {
-            Some(n) => {
-                let p : bool = is_prime(&n);
-                 
-                println!("prime: {}", p);
-            },
-            None => {
-                println!( "You need to provide a natural number as an input argument.")
+    fn candidate_killed_by (candidate : uint, prime : uint) -> bool {
+        let offsets : Vec<uint> = Vec::from_slice([0u, 4u, 6u, 10u, 12u, 16u]);
+        for offset in offsets.iter() {
+            if (candidate + *offset) % prime == 0 {
+                return true;
             }
-        };
+        }
+        false
     }
 
+    fn add_next_prime (max_val : uint, offsets : Vec<uint>, prime : uint, primorial : uint) -> Vec<uint> {
+        let mut base : uint = 0u;
+        let mut new_offsets : Vec<uint> = Vec::new();
+        for _ in range(0u, prime) {
+            if base > max_val {
+                break
+            }
+            for o in offsets.iter() {
+                    let val = base + *o;
+                    if val > max_val {
+                        break
+                    }
+                    if !candidate_killed_by(val, prime) {
+                        new_offsets.push(val);
+                    }
+            }
+            base = base + primorial;
+        }
+        return new_offsets
+    }
+    let primorial_max : uint = 29u;
+    let primorial_start : uint = 7u;
+    let mut primorial : uint = 210u;  // 2*3*5*7
+    let mut offsets : Vec<uint> = Vec::from_slice([97u]);
+    for i in simple_sieve(primorial_max).iter() {
+        if *i <= primorial_start {
+            continue
+        }
+        offsets = add_next_prime(max_val, offsets, *i, primorial);
+        primorial = primorial * *i;
+    }
+    let mut count : uint = 0;
+    for o in offsets.iter() {
+        if is_valid_pow(&o.to_biguint().unwrap()) {
+            count = count + 1;
+            if verbose { println!("prime: {}", o) }
+        }
+    }
+    count
+}
+
+#[cfg(test)]
+mod test_primes {
+    use super::gen_prime;
+
+    #[test]
+    fn gen_prime_is_correct() {
+        let v = gen_prime(100000000, false);
+        println!("{}", v);
+        assert!(v == 81u);
+    }
+}
+
+fn main() {
+    println!("{}", gen_prime(100000000, true));
 }
