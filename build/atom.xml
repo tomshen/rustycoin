@@ -4,7 +4,7 @@
  <title>RustyCoin</title>
  <link href="http://www.tomshen.me/rustycoin/atom.xml" rel="self"/>
  <link href="http://www.tomshen.me/rustycoin/"/>
- <updated>2014-04-18T19:24:11-04:00</updated>
+ <updated>2014-04-18T21:47:48-04:00</updated>
  <id>http://www.tomshen.me/rustycoin</id>
  <author>
    <name>Tom Shen</name>
@@ -19,35 +19,82 @@
    <id>http://www.tomshen.me/rustycoin./checkpoint</id>
    <content type="html">&lt;h1 id=&quot;toc_0&quot;&gt;Current Progress&lt;/h1&gt;
 
+&lt;p&gt;We have completed a sequential Riecoin proof of work algorithm in Rust. The two main components we have implemented are the Rabin-Miller primality test and wheel factorization. These are the algorithms used by David Andersen in his &lt;a href=&quot;https://github.com/dave-andersen/fastrie&quot;&gt;CPU miner&lt;/a&gt;. We researched other methods of prime verification and generation, but it seems that these are the most efficient for the large integers we are dealing with.&lt;/p&gt;
+
+&lt;p&gt;We began by implementing these algorithms for bignums. However, we realized that a lot of the functionality we need for the miner is not yet implemented in the built-in Rust bignum library. For now, our algorithm assumes that we are dealing with unsigned 64 bit integers. In the next week, we plan to add the needed functionality to the bignum library, so that we can handle the large integers needed for the miner. &lt;/p&gt;
+
+&lt;p&gt;Also, we decided to use an external &lt;a href=&quot;https://github.com/jsanders/rust-bignum&quot;&gt;Rust bignum library&lt;/a&gt;, after poor performance on Rabin-Miller with the built-in library. This improved performance on Rabin-Miller substantially. We will be modifying this library, rather than the built-in bignum library. &lt;/p&gt;
+
+&lt;p&gt;We have also written some unit tests for Rabin-Miller and wheel factorization. We will be using the built-in Rust unit testing. &lt;/p&gt;
+
 &lt;h1 id=&quot;toc_1&quot;&gt;Challenges&lt;/h1&gt;
 
-&lt;h1 id=&quot;toc_2&quot;&gt;Remaining Schedule&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;Modifying the bignum library to include what we need for the proof of work algorithm&lt;/li&gt;
+&lt;li&gt;Doing arithmetic on very large integers &lt;/li&gt;
+&lt;li&gt;Optimizing our proof of work algorithm to beat the CPU implementation by reducing shared information&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;toc_2&quot;&gt;Revised Goals&lt;/h1&gt;
+
+&lt;p&gt;We are definitely on schedule to complete a proof of work algorithm that uses the GPU and improves upon CPU performance. Now that we have written the sequential algorithm, adapting it to use OpenCL should be easily completed in the next couple weeks. We are also confident that we will be able to optimize our algorithm further by parallelizing additional components of the algorithm. Given our revised schedule below, we should have time to implement a complete Riecoin miner. The only thing that may prevent us from achieving these goals is adding to the bignum library, which may be more difficult than expected.&lt;/p&gt;
+
+&lt;h2 id=&quot;toc_3&quot;&gt;Plan to achieve&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Add functionality to bignum library&lt;/li&gt;
+&lt;li&gt;Use GPU for parallel prime cluster searching&lt;/li&gt;
+&lt;li&gt;Achieve better performance than CPU miner on a GHC machine&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;toc_4&quot;&gt;Hope to achieve&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Parallelize rest of computation (fast prime verification)&lt;/li&gt;
+&lt;li&gt;Implement complete Riecoin miner&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;toc_5&quot;&gt;Remaining Schedule&lt;/h1&gt;
 
 &lt;table&gt;&lt;thead&gt;
 &lt;tr&gt;
-&lt;th&gt;Week&lt;/th&gt;
+&lt;th&gt;Dates&lt;/th&gt;
 &lt;th&gt;What We Plan to Do&lt;/th&gt;
 &lt;/tr&gt;
 &lt;/thead&gt;&lt;tbody&gt;
 &lt;tr&gt;
-&lt;td&gt;Apr. 13 - Apr. 19&lt;/td&gt;
-&lt;td&gt;Add parallelization by moving prime cluster searching computation to GPU, project checkpoint&lt;/td&gt;
+&lt;td&gt;Apr. 17 - Apr. 19&lt;/td&gt;
+&lt;td&gt;Complete sequential miner, project checkpoint&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;Apr. 20 - Apr. 26&lt;/td&gt;
-&lt;td&gt;Improve algorithm and look for more areas of parallelization, parallelize prime verification&lt;/td&gt;
+&lt;td&gt;Apr. 20 -  Apr. 23&lt;/td&gt;
+&lt;td&gt;Make cluster work with bignums, optimize sequential cluster searching&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;Apr. 27 - May 3&lt;/td&gt;
+&lt;td&gt;Apr. 24 - Apr. 26&lt;/td&gt;
+&lt;td&gt;Add parallelization by moving prime cluster searching computation to GPU&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Apr. 27 - Apr. 30&lt;/td&gt;
+&lt;td&gt;Parallelize prime verification, improve algorithm by looking for further parallelism&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;May 1 - May 3&lt;/td&gt;
 &lt;td&gt;Implement complete miner&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;May 4 - May 9&lt;/td&gt;
-&lt;td&gt;Performance testing, bug fixing, final write up&lt;/td&gt;
+&lt;td&gt;May 4 - May 7&lt;/td&gt;
+&lt;td&gt;Performance testing, final optimizations&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;May 8 - May 9&lt;/td&gt;
+&lt;td&gt;Bug fixing, final write up&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;&lt;/table&gt;
 
-&lt;h1 id=&quot;toc_3&quot;&gt;Demo&lt;/h1&gt;
+&lt;h1 id=&quot;toc_6&quot;&gt;Demo&lt;/h1&gt;
+
+&lt;p&gt;For our final demo, we plan to run our miner across many of the GHC machines. We also plan to show graphs showing the speedup our miner achieved over the CPU miner. &lt;/p&gt;
 </content>
  </entry>
  
