@@ -11,6 +11,7 @@ use std::vec::Vec;
 use std::iter;
 use std::clone::Clone;
 use std::ops::{Shr, BitAnd};
+use std::bool;
 
 static pow_offsets : &'static[uint] = &[0u, 4u, 6u, 10u, 12u, 16u];
 
@@ -124,31 +125,32 @@ fn is_valid_pow(prime : &BigUint) -> bool {
     true
 }
 
+static mut primes : [bool, ..500000001] = [true, ..500000001];
+static mut already_sieved : uint = 0;
 
-// Source: http://rosettacode.org/wiki/Sieve_of_Eratosthenes#Rust
-fn simple_sieve(limit: uint) -> ~[uint] {
-
+// Simple sieve
+fn simple_sieve(primorial_max : uint, verbose : bool) -> ~[uint] {
+    assert!(primorial_max <= 500000000);
     #[inline]
     fn int_sqrt(n: uint) -> uint { (n as f64).sqrt() as uint }
-
-    if limit < 2 {
-        return ~[];
-    }
-
-    let mut primes = Vec::from_elem(limit + 1, true);
-
-    for prime in iter::range_inclusive(2, int_sqrt(limit) + 1) {
-        if *primes.get(prime) {
-            for multiple in iter::range_step(prime * prime, limit + 1, prime) {
-                *primes.get_mut(multiple) = false
+    unsafe {
+        if already_sieved < primorial_max {
+            for prime in range(2, int_sqrt(primorial_max) + 1) {
+                if primes[prime] {
+                    for multiple in iter::range_step(prime * prime, primorial_max + 1, prime) {
+                        primes[multiple] = false
+                    }
+                    if verbose { println!("Sieved {}", prime) }
+                }
             }
+            already_sieved = primorial_max;
+            if verbose { println!("Finished sieving") }
         }
+        range(2, primorial_max+1).filter(|&n| primes[n]).collect()
     }
-    iter::range_inclusive(2, limit).filter(|&n| *primes.get(n)).collect()
-
 }
 
-fn gen_prime(max_val : &BigUint, verbose : bool) -> uint {
+fn gen_prime(max_val : &BigUint, max_sieve : uint, verbose : bool) -> uint {
 
     fn candidate_killed_by(candidate : &BigUint, prime : &BigUint) -> bool {
         let zero : BigUint = Zero::zero();
@@ -184,16 +186,16 @@ fn gen_prime(max_val : &BigUint, verbose : bool) -> uint {
         }
         return new_offsets
     }
-    let primorial_max : uint = 29u;
     let primorial_start : uint = 7u;
     let mut primorial : uint = 210u;  // 2*3*5*7
     let mut offsets : Vec<BigUint> = Vec::from_slice([big(97u)]);
-    for i in simple_sieve(primorial_max).iter() {
-        if *i <= primorial_start {
+
+    for &i in simple_sieve(max_sieve, verbose).iter() {
+        if i <= primorial_start {
             continue
         }
-        offsets = add_next_prime(max_val, offsets, big(*i), big(primorial));
-        primorial = primorial * *i;
+        offsets = add_next_prime(max_val, offsets, big(i), big(primorial));
+        primorial = primorial * i;
     }
     let mut count : uint = 0;
     for o in offsets.iter() {
@@ -207,16 +209,19 @@ fn gen_prime(max_val : &BigUint, verbose : bool) -> uint {
 
 #[cfg(test)]
 mod test_primes {
-    use super::{big, gen_prime};
+    use super::{big, gen_prime, simple_sieve};
 
     #[test]
     fn gen_prime_is_correct() {
-        let v = gen_prime(&big(1000000000), false);
-        println!("{}", v);
-        assert!(v == 81u);
+        assert!(gen_prime(&big(100000000), 10000, false) == 80u);
+    }
+
+    #[test]
+    fn simple_sieve_is_correct() {
+        assert!(simple_sieve(5000000, false).len() == 348513);
     }
 }
 
 fn main() {
-    println!("{}", gen_prime(&big(1000000000000), true));
+    println!("{}", gen_prime(&big(100000000), 10000, true));
 }
