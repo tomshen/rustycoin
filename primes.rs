@@ -5,18 +5,22 @@ extern crate bignum = "bignum#0.1.1-pre";
 use bignum::{BigUint, ToBigUint,RandBigInt};
 use num::{div_mod_floor, Integer};
 use std::num::{Zero, One, pow, Float};
-use rand::task_rng;
+use rand::{task_rng, Rng};
+use rand::distributions::range::SampleRange;
 use std::vec::Vec;
 use std::iter;
 use std::clone::Clone;
 use std::ops::{Shr, BitAnd};
 
-fn to_biguint (i : u64) -> BigUint {
+#[inline]
+fn big<T: ToBigUint>(i : T) -> BigUint {
     i.to_biguint().unwrap()
 }
 
 // Source: https://gist.github.com/jsanders/8739134#file-generate_big_primes-rs-L35
-fn mod_exp<T: Integer + Clone + Shr<uint, T> + BitAnd<T,T>>(base: &T, exponent: &T, modulus: &T) -> T {
+fn mod_exp<T: Integer + Clone + Shr<uint,T> + BitAnd<T,T>>
+    (base: &T, exponent: &T, modulus: &T) -> T {
+
     let (zero, one): (T, T) = (Zero::zero(), One::one());
     let mut result = one.clone();
     let mut baseAcc = base.clone();
@@ -36,19 +40,41 @@ fn mod_exp<T: Integer + Clone + Shr<uint, T> + BitAnd<T,T>>(base: &T, exponent: 
         exponentAcc = exponentAcc.shr(&1);
     }
     result
+
 }
 
 
-/* Since we use Miller-Rabin, this function technically finds if a number is
- * *probably* correct.
- */
-fn is_prime(n : &BigUint) -> bool {
-    let zero : BigUint = Zero::zero();
-    let one : BigUint = One::one();
+// Miller-Rabin, probabilistic
+fn try_composite<T : Integer + Clone + Shr<uint,T> + BitAnd<T,T> + ToPrimitive>
+    (a : &T, d : &T, n : &T, s : &T) -> bool {
+
+    let one : T = One::one();
+    if mod_exp(a, d, n) == one {
+        return false
+    }
+    let mut i = 0u;
+    loop {
+        if i == s.to_uint().unwrap() {
+            break
+        }
+        if mod_exp(a, &(pow(one+one, i) * *d), n) == *n-one {
+            return false
+        }
+        i += 1;
+    }
+    true
+
+}
+fn is_prime<T : Integer + Clone + Shr<uint,T> + BitAnd<T,T> + ToPrimitive + SampleRange>
+    (n : &T) -> bool {
+
+    let (zero, one): (T, T) = (Zero::zero(), One::one());
     let two = one + one;
+
     assert!(n >= &two);
+
     let mut s = zero.clone();
-    let mut d = n-one;
+    let mut d = *n-one;
     let num_trials = 5;
     if n == &two {
         return true
@@ -63,33 +89,15 @@ fn is_prime(n : &BigUint) -> bool {
         }
     }
 
-    fn try_composite(a : &BigUint, d : &BigUint, n : &BigUint, s : &BigUint) -> bool {
-        let one = to_biguint(1);
-        let two = to_biguint(2);
-        if mod_exp(a, d, n) == one {
-            return false
-        }
-        let mut i : uint = 0;
-        loop {
-            if &i.to_biguint().unwrap() == s {
-                break
-            }
-            if mod_exp(a, &(pow(two.clone(), i) * *d), n) == n-one {
-                return false
-            }
-            i += 1;
-        }
-        true
-    }
-
     let mut rng = task_rng();
     for _ in range(0, num_trials) {
-        let a = rng.gen_biguint_range(&two, n);
+        let a = rng.gen_range(one + one, n.clone());
         if try_composite(&a, &d, n, &s) {
             return false
         }
     }
     true
+
 }
 
 fn is_valid_pow(prime : uint) -> bool {
