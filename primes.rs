@@ -46,7 +46,7 @@ fn mod_exp<T: Integer + Clone + Shr<uint,T> + BitAnd<T,T>>
 }
 
 
-// Miller-Rabin, probabilistic
+// Rabin-Miller primality test, probabilistic
 fn try_composite(a : &BigUint, d : &BigUint, n : &BigUint, s : &BigUint) -> bool {
 
     let one : BigUint = One::one();
@@ -207,7 +207,7 @@ fn gen_prime(max_val : &BigUint, verbose : bool) -> uint {
 
 #[cfg(test)]
 mod test_primes {
-    use super::gen_prime;
+    use super::{big, gen_prime};
 
     #[test]
     fn gen_prime_is_correct() {
