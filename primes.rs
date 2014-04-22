@@ -66,7 +66,7 @@ fn try_composite(a : &BigUint, d : &BigUint, n : &BigUint, s : &BigUint) -> bool
     true
 
 }
-fn is_prime(n : &BigUint) -> bool {
+fn rm_is_prime(n : &BigUint) -> bool {
 
     let (zero, one): (BigUint, BigUint) = (Zero::zero(), One::one());
     let two = one + one;
@@ -117,7 +117,7 @@ fn fermat_is_prime(n : &BigUint) -> bool {
 
 fn is_valid_pow(prime : &BigUint) -> bool {
     for offset in [big(0u), big(4u), big(6u), big(10u), big(12u), big(16u)].iter() {
-        if !is_prime(&(*prime + *offset)) {
+        if !fermat_is_prime(&(*prime + *offset)) {
             return false;
         }
     }
@@ -211,12 +211,12 @@ mod test_primes {
 
     #[test]
     fn gen_prime_is_correct() {
-        let v = gen_prime(&big(1000000000), true);
+        let v = gen_prime(&big(1000000000), false);
         println!("{}", v);
         assert!(v == 81u);
     }
 }
 
 fn main() {
-    println!("{}", gen_prime(&big(1000000000), false));
+    println!("{}", gen_prime(&big(1000000000000), true));
 }
