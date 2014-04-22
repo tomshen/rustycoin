@@ -1,16 +1,22 @@
+DEPS ?= $(wildcard deps/*)
+
+.PHONY: cleandeps deps
+
 all:
-	rustc -L deps/rust-bignum -L deps/rust-opencl/build primes.rs
+	rustc -L deps/rust-bignum -L deps/rust-opencl primes.rs
 
 deps:
-	cd deps
-	cd rust-bignum
-	make build
-	cd ../rust-opencl
-	make build
-	cd ../..
+	@for dep in $(DEPS) ; do \
+		$(MAKE) -w -C $$dep && $(MAKE) -w -C $$dep build ; \
+	done
 
-clean:
-	rm primes
+clean: cleandeps
+	rm -f primes
+
+cleandeps:
+	@for dep in $(DEPS) ; do \
+		$(MAKE) -w -C $$dep clean ; \
+	done
 
 test:
 	rustc --test primes.rs
