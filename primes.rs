@@ -8,14 +8,16 @@ use std::num::{Zero, One, pow, Float};
 use rand::task_rng;
 use std::vec::Vec;
 use std::iter;
+use std::clone::Clone;
+use std::ops::{Shr, BitAnd};
 
 fn to_biguint (i : u64) -> BigUint {
     i.to_biguint().unwrap()
 }
 
 // Source: https://gist.github.com/jsanders/8739134#file-generate_big_primes-rs-L35
-fn mod_exp(base: &BigUint, exponent: &BigUint, modulus: &BigUint) -> BigUint {
-    let (zero, one): (BigUint, BigUint) = (Zero::zero(), One::one());
+fn mod_exp<T: Integer + Clone + Shr<uint, T> + BitAnd<T,T>>(base: &T, exponent: &T, modulus: &T) -> T {
+    let (zero, one): (T, T) = (Zero::zero(), One::one());
     let mut result = one.clone();
     let mut baseAcc = base.clone();
     let mut exponentAcc = exponent.clone();
@@ -90,14 +92,25 @@ fn is_prime(n : &BigUint) -> bool {
     true
 }
 
-fn is_valid_pow(prime : &BigUint) -> bool {
-    for offset in Vec::from_slice([0, 4, 6, 10, 12, 16]).iter().map(
-        |&i| i.to_biguint().unwrap()) {
-        if !is_prime(&(prime + offset)) {
+fn is_valid_pow(prime : uint) -> bool {
+    for &offset in [0u, 4u, 6u, 10u, 12u, 16u].iter() {
+        if !fermat_is_prime(prime + offset) {
             return false;
         }
     }
     true
+}
+
+fn fermat_is_prime(n : uint) -> bool {
+    if n == 2 {
+        true
+    } else if n.is_even() {
+        false
+    } else if mod_exp(&2, &(n-1), &n) == 1 {
+        true
+    } else {
+        false
+    }
 }
 
 fn gen_prime(max_val : uint, verbose : bool) -> uint {
@@ -164,8 +177,8 @@ fn gen_prime(max_val : uint, verbose : bool) -> uint {
         primorial = primorial * *i;
     }
     let mut count : uint = 0;
-    for o in offsets.iter() {
-        if is_valid_pow(&o.to_biguint().unwrap()) {
+    for &o in offsets.iter() {
+        if is_valid_pow(o) {
             count = count + 1;
             if verbose { println!("prime: {}", o) }
         }
@@ -179,12 +192,12 @@ mod test_primes {
 
     #[test]
     fn gen_prime_is_correct() {
-        let v = gen_prime(100000000, false);
+        let v = gen_prime(1000000000, true);
         println!("{}", v);
         assert!(v == 81u);
     }
 }
 
 fn main() {
-    println!("{}", gen_prime(100000000, true));
+    println!("{}", gen_prime(1000000000, true));
 }
