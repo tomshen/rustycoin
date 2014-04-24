@@ -7,7 +7,7 @@ all:
 
 deps:
 	@for dep in $(DEPS) ; do \
-		$(MAKE) -w -C $$dep && $(MAKE) -w -C $$dep build ; \
+		$(MAKE) -w -C $$dep deps && $(MAKE) -w -C $$dep && $(MAKE) -w -C $$dep build ; \
 	done
 
 clean: cleandeps
