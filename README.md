@@ -1,4 +1,4 @@
 rustycoin
 =========
 
-A GPU Riecoin miner in Rust
+A Cuda Riecoin miner in C++
