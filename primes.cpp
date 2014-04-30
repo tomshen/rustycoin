@@ -3,6 +3,8 @@
 
 #include <gmp.h>
 
+#include "util.h"
+
 #define FERMAT_ITERS 1000
 
 bool is_even(mpz_t n) {
@@ -28,7 +30,7 @@ bool is_prime_fermat(mpz_t n, int k=FERMAT_ITERS) {
   mpz_sub(nmo, n, one);
   for (int i = 0; i < k; i++) {
     mpz_urandomm(a, seed, n);
-    mpz_powm_sec(rem, a, nmo, n);
+    mpz_powm(rem, a, nmo, n);
     if (mpz_cmp(rem, one) != 0)
       return false;
   }
