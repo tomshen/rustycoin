@@ -1,6 +1,0 @@
-[submodule "deps/rust-bignum"]
-	path = deps/rust-bignum
-	url = https://github.com/jsanders/rust-bignum
-[submodule "deps/rust-opencl"]
-	path = deps/rust-opencl
-	url = https://github.com/luqmana/rust-opencl
