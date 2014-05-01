@@ -1,17 +1,18 @@
 #include <iostream>
-#include <string>
+#include <stdint.h>
+#include <string.h>
 
 #include <gmp.h>
 
+#include "primes.h"
 #include "util.h"
 
-#define FERMAT_ITERS 1000
 
 bool is_even(mpz_t n) {
   return mpz_divisible_ui_p(n, 2) != 0;
 }
 
-bool is_prime_fermat(mpz_t n, int k=FERMAT_ITERS) {
+bool is_prime_fermat(mpz_t n, int k) {
   mpz_t one, two, rem, nmo, a;
   gmp_randstate_t seed;
 
@@ -37,18 +38,40 @@ bool is_prime_fermat(mpz_t n, int k=FERMAT_ITERS) {
   return true;
 }
 
-int main(int argc, char** argv) {
-  mpz_t input;
-  mpz_init(input);
-  if (argc < 2) {
-    std::cout << "Usage: primes [integer to test for primality]" << std::endl;
-    return 0;
-  } else {
-    mpz_set_str(input, argv[1], 10);
-    if (is_prime_fermat(input))
-      std::cout << argv[1] << " is prime." << std::endl;
-    else
-      std::cout << argv[1] << " is composite." << std::endl;
-    return 0;
+void sieve(uint32_t** prime_test_table, uint32_t* prime_test_size,
+    uint32_t prime_test_limit) {
+  /* Source: http://git.io/-m1Ypw
+   * We use uint8 instead of bool because otherwise our array would be too
+   * large to index into. */
+  *prime_test_table = (uint32_t*)malloc(sizeof(uint32_t)*(prime_test_limit/4+10));
+  if (prime_test_table == NULL) {
+    perror("could not allocate prime test table");
+    exit(-1);
   }
+  *prime_test_size = 0;
+
+  uint8_t* vfComposite = (uint8_t*)malloc(sizeof(uint8_t)*(prime_test_limit+7)/8);
+  if (vfComposite == NULL) {
+    perror("could not allocate vfComposite table");
+    exit(-1);
+  }
+  memset(vfComposite, 0x00, sizeof(uint8_t)*(prime_test_limit+7)/8);
+  for (unsigned int nFactor = 2; nFactor * nFactor < prime_test_limit; nFactor++)
+  {
+    if(vfComposite[nFactor>>3] & (1<<(nFactor&7)))
+      continue;
+    for (unsigned int nComposite = nFactor * nFactor; nComposite < prime_test_limit; nComposite += nFactor)
+      vfComposite[nComposite>>3] |= 1<<(nComposite&7);
+  }
+  for (unsigned int n = 2; n < prime_test_limit; n++)
+  {
+    if ((vfComposite[n>>3] & (1<<(n&7))) == 0)
+    {
+      (*prime_test_table)[*prime_test_size] = n;
+      (*prime_test_size)++;
+    }
+  }
+  *prime_test_table = (uint32_t*)realloc(*prime_test_table, sizeof(uint32_t)*(*prime_test_size));
+  free(vfComposite);
 }
+
