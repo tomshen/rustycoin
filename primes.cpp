@@ -38,6 +38,23 @@ bool is_prime_fermat(mpz_t n, int k) {
   return true;
 }
 
+bool is_valid_pow(mpz_t candidate) {
+
+  unsigned int offsets [5] = {4, 2, 4, 2, 4};
+  
+  mpz_t offset;
+  mpz_init(offset);
+  for (int i = 0; i < 5; i++) {
+    mpz_set_ui(offset, offsets[i]);
+    
+    mpz_add(candidate, candidate, offset);
+    
+    if (!is_prime_fermat(candidate)) return false;
+  }
+  
+  return true;
+}
+
 void sieve(uint32_t** prime_test_table, uint32_t* prime_test_size,
     uint32_t prime_test_limit) {
   /* Source: http://git.io/-m1Ypw
