@@ -14,7 +14,7 @@ bool is_even(mpz_class n) {
   return mpz_divisible_ui_p(n.get_mpz_t(), 2) != 0;
 }
 
-bool is_prime_fermat(mpz_class n, int k=100) {
+bool is_prime_fermat(mpz_class n, int k) {
   mpz_class one, two, rem, nmo, a;
   gmp_randstate_t seed;
 
