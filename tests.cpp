@@ -26,8 +26,8 @@ void test_sieve() {
 }
 
 void test_is_valid_pow() {
-  mpz_class input = 97;
-  expect(true, is_valid_pow(input), "POW checker gives false negative on 97");
+  mpz_class input = 7;
+  expect(true, is_valid_pow(input), "POW checker gives false negative on 7");
 
   input = 103;
   expect(false, is_valid_pow(input), "POW checker gives false positive on 103");
@@ -38,6 +38,8 @@ void test_is_valid_pow() {
 }
 
 int main(int argc, char** argv) {
-  test_sieve();
+  test_primality(7);
+  test_primality(97);
+  //test_sieve();
   test_is_valid_pow();
 }
