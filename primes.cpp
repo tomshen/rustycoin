@@ -11,17 +11,15 @@
 static uint32_t cluster_offsets[6] = {0, 4, 2, 4, 2, 4};
 
 bool is_even(mpz_class n) {
-  return mpz_divisible_ui_p(n.get_mpz_t(), 2) != 0;
+  return mpz_divisible_2exp_p(n.get_mpz_t(), 1) != 0;
 }
 
 bool is_prime_fermat(mpz_class n, int k) {
-  mpz_class one, two, rem, nmo, a;
-  gmp_randstate_t seed;
+  mpz_class rem, a;
 
+  gmp_randstate_t seed;
   gmp_randinit_default(seed);
 
-  one = 1;
-  two = 2;
 
   if (n == 2) {
     return true;
@@ -29,20 +27,23 @@ bool is_prime_fermat(mpz_class n, int k) {
     return false;
   }
 
-  nmo = n - one;
   for (int i = 0; i < k; i++) {
-    mpz_urandomm(a.get_mpz_t(), seed, n.get_mpz_t());
+    mpz_class nmo = n - 1;
+    mpz_urandomm(a.get_mpz_t(), seed, nmo.get_mpz_t()); // 0 <= a < n-1
+    a += 1; // 1 <= a < n
     mpz_powm(rem.get_mpz_t(), a.get_mpz_t(), nmo.get_mpz_t(), n.get_mpz_t());
-    if (rem != one)
+    if (rem != 1)
       return false;
   }
+
   return true;
 }
 
 bool is_valid_pow(mpz_class candidate) {
+  mpz_class val = candidate;
   for (int i = 0; i < 6; i++) {
-    candidate += cluster_offsets[i];
-    if (!is_prime_fermat(candidate))
+    val += cluster_offsets[i];
+    if (!is_prime_fermat(val))
       return false;
   }
   return true;
@@ -88,8 +89,7 @@ void sieve(uint32_t** prime_test_table, uint32_t* prime_test_size,
 }
 
 bool candidate_killed_by(mpz_class candidate, mpz_class prime) {
-  mpz_class p;
-  p = candidate;
+  mpz_class p = candidate;
   for(int i = 0; i < 6; i++) {
     p += cluster_offsets[i];
     if (p % prime == 0)
@@ -101,9 +101,8 @@ bool candidate_killed_by(mpz_class candidate, mpz_class prime) {
 
 std::vector<mpz_class> add_next_prime(std::vector<mpz_class> offsets,
     mpz_class max_val, mpz_class prime, mpz_class primorial) {
-  mpz_class base, counter, val;
-  base = 0;
-  counter = 0;
+  mpz_class base = 0;
+  mpz_class counter = 0;
 
   std::vector<mpz_class> new_offsets;
 
@@ -112,13 +111,13 @@ std::vector<mpz_class> add_next_prime(std::vector<mpz_class> offsets,
       break;
     for (std::vector<mpz_class>::iterator o = offsets.begin();
         o != offsets.end(); o++) {
-      val = base + *o;
+      mpz_class val = base + *o;
       if (val > max_val)
         break;
       if (!candidate_killed_by(val, prime))
         new_offsets.push_back(val);
     }
-    base = base + primorial;
+    base + primorial;
     counter += 1;
   }
 
@@ -129,9 +128,8 @@ uint32_t generate_prime_clusters(mpz_class max_val, uint32_t max_sieve,
     bool verbose) {
   uint32_t primorial_start = 7;
 
-  mpz_class primorial, big97, prime;
-  primorial = 210;
-  big97 = 97;
+  mpz_class primorial = 210;
+  mpz_class big97 = 97;
 
   std::vector<mpz_class> offsets;
   offsets.push_back(big97);
@@ -141,9 +139,9 @@ uint32_t generate_prime_clusters(mpz_class max_val, uint32_t max_sieve,
   sieve(&prime_test_table, &prime_test_size, max_sieve);
 
   for (uint32_t i = primorial_start+1; i < prime_test_size; i++) {
-    prime = i;
+    mpz_class prime = i;
     offsets = add_next_prime(offsets, max_val, prime, primorial);
-    primorial = primorial * i;
+    primorial *= i;
   }
   uint32_t count = 0;
   for (std::vector<mpz_class>::iterator o = offsets.begin();

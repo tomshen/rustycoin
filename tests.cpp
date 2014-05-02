@@ -4,14 +4,13 @@
 
 #include "primes.h"
 
-#define expect(a, b, s) if (a != b) std::cout << s << "\n" << "Expected " << a << ", received " << b << std::endl;
+#define expect(a, b, s) if (a != b) std::cerr << "---\n" << s << "\n" << "Expected " << a << ", received " << b << "\n---\n" << std::endl;
 
-void test_primality(unsigned long int n) {
-  mpz_class input = n;
-  if (is_prime_fermat(input))
-    std::cout << n << " is prime." << std::endl;
-  else
-    std::cout << n << " is composite." << std::endl;
+void test_is_prime_fermat() {
+  mpz_class n = 7;
+  expect(true, is_prime_fermat(n), "7 should be prime");
+  n = 97;
+  expect(true, is_prime_fermat(n), "97 should be prime");
 }
 
 void test_sieve() {
@@ -38,8 +37,6 @@ void test_is_valid_pow() {
 }
 
 int main(int argc, char** argv) {
-  test_primality(7);
-  test_primality(97);
-  //test_sieve();
+  test_is_prime_fermat();
   test_is_valid_pow();
 }
