@@ -1,7 +1,7 @@
 
 namespace thrust
 {
-	/*
+
 	template<uint value_size>
 	big_integer<value_size> big_integer<value_size>::operator>>(int shift)
 	{
@@ -105,7 +105,7 @@ namespace thrust
 
 		return *this;
 	}
-	*/
+	
 
 	template<uint value_size>
 	big_integer<value_size> big_integer<value_size>::operator+(const big_integer<value_size>& other) const
@@ -136,7 +136,7 @@ namespace thrust
 		return result;
 	}
 
-	/*
+	
 	template<uint value_size>
 	big_integer<value_size>& big_integer<value_size>::operator+=(const big_integer<value_size>& q)
 	{
@@ -205,7 +205,7 @@ namespace thrust
 		for( i = 0; i < value_size; i++)
 			result.data[i] = ~data[i];
 
-		result = result + one;
+		result = result + big_integer(1);
 
 		return result;
 	}
@@ -312,7 +312,7 @@ namespace thrust
 				p += t;
 			qq >>= 1;
 			t <<= 1;
-		} while (qq != zero());
+		} while (qq != big_integer(0));
 		
 		return p;	
 	}
@@ -326,14 +326,14 @@ namespace thrust
 		int i, shiftcnt=0;
 
 		// Check for attempt to divide by zero
-		if( b == zero() )
+		if( b == big_integer(0) )
 			shiftcnt = 1 / shiftcnt;  	// Force a divide by zero exception. (shiftcnt=0)
 
-		c=zero();
+		c=big_integer(0);
 		d=b;		     				// Store the divisor in D
 
 		// Left shift B until it is greater than or equal to A
-		while ( b < a && ( ( b.data[value_size-1] & msb ) == 0 ) )
+		while ( b < a && ( ( b.data[value_size-1] & data[value_size-1] ) == 0 ) )
 		{
 			b <<= 1;
 			shiftcnt++;
@@ -409,7 +409,7 @@ namespace thrust
 
 		return x;
 	}
-	*/
+	
 
 	template<uint value_size>
 	int big_integer<value_size>::operator<(const big_integer<value_size>& q) const
@@ -471,7 +471,7 @@ namespace thrust
 		return 1;
 	}
 
-	/*
+	
 	// Bitwise operators
 	template<uint value_size>
 	big_integer<value_size> big_integer<value_size>::operator&(const big_integer<value_size>& q)
@@ -553,5 +553,5 @@ namespace thrust
 
 		return result;
 	}
-	*/
+	
 }

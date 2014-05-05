@@ -99,34 +99,44 @@ namespace thrust
 		}
 
 		// Shift operators
-		/*
+		
 		big_integer<value_size> operator>>(int shift);
 		big_integer<value_size> operator<<(int shift);
+        __host__ __device__
 		big_integer<value_size>& operator>>=(int shift);
+        __host__ __device__
 		big_integer<value_size>& operator<<=(int shift);
-		*/
+		
 
 		// Arithmetic operators
 		__host__ __device__
 		big_integer<value_size> operator+(const big_integer<value_size>& other) const;
-		/*
-		big_integer<value_size>& operator+=(const big_integer<value_size>& q);
-		big_integer<value_size>& operator++();  		// Pre Increment operator -- faster than add
-		big_integer<value_size>& operator++(int);  		// Post Increment operator -- faster than add
+		__host__ __device__
+        big_integer<value_size>& operator+=(const big_integer<value_size>& q);
+		__host__ __device__
+        big_integer<value_size>& operator++();  		// Pre Increment operator -- faster than add
+		__host__ __device__
+        big_integer<value_size>& operator++(int);  		// Post Increment operator -- faster than add
+        __host__ __device__
 		big_integer<value_size> operator-();  			// Negates a number
+        __host__ __device__
 		big_integer<value_size> operator-(const big_integer<value_size>& q) const;
-		big_integer<value_size>& operator-=(const big_integer<value_size>& q);
+		__host__ __device__
+        big_integer<value_size>& operator-=(const big_integer<value_size>& q);
 		big_integer<value_size>& operator--();  		// Pre Decrement operator -- faster than add
 		big_integer<value_size>& operator--(int);  		// Post Decrement operator -- faster than add
 		//big_integer<value_size> operator*(big_integer<value_size> q);
-		big_integer<value_size> operator*(const big_integer<value_size>& q) const;
+		__host__ __device__
+        big_integer<value_size> operator*(const big_integer<value_size>& q) const;
+        __host__ __device__
 		big_integer<value_size> Divide(big_integer<value_size> dividend, 
 									   big_integer<value_size> divisor,
 									   big_integer<value_size>* remainder);
 		big_integer<value_size> operator/(const big_integer<value_size>& q);
-		big_integer<value_size> operator%(const big_integer<value_size>& q);
+		__host__ __device__
+        big_integer<value_size> operator%(const big_integer<value_size>& q);
 		big_integer<value_size> sqrt();			// returns the square root of this
-		*/
+		
 
 		// Comparison operators
 		__host__ __device__
@@ -139,7 +149,7 @@ namespace thrust
 		int operator>=(const big_integer<value_size>& q) const;
 
 		// Bitwise operators
-		/*
+        __host__ __device__
 		big_integer<value_size> operator&(const big_integer<value_size>& q);
 		big_integer<value_size> operator|(const big_integer<value_size>& q);
 		big_integer<value_size> operator^(const big_integer<value_size>& q);
@@ -147,7 +157,6 @@ namespace thrust
 		big_integer<value_size>& operator|=(const big_integer<value_size>& q);
 		big_integer<value_size>& operator^=(const big_integer<value_size>& q);
 		big_integer<value_size> operator~();
-		*/
 
 		// Comparison operators
 		__host__ __device__
@@ -157,14 +166,13 @@ namespace thrust
 			return memcmp( data, other.data, value_size * sizeof(uint) ) == 0;
 		}
 
-		/*
+		
 		__host__ __device__
 		int operator!=(const big_integer<value_size>& other) const
 		{
-			// device don't have memcmp
-			return memcmp( data, other.data, value_size * sizeof(uint) ) != 0;
+			return !operator==(other);
 		}
-		*/
+		
 		
 	//private:
 		// Storage for values
@@ -179,7 +187,8 @@ namespace thrust
 
 }
 
-template<uint value_size> thrust::big_integer<value_size> thrust::big_integer<value_size>::m_zero;
+template<uint value_size> thrust::big_integer<value_size> thrust::big_integer<value_size>::m_zero =
+    big_integer(0u);
 
 /*
 template<uint value_size>
