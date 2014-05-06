@@ -11,7 +11,7 @@
 #include <string.h>
 #include <limits>
 
-#define msb std::numeric_limits<uint>::max() ^ ( std::numeric_limits<uint>::max() >> 1 )
+#define msb 1u<<31
 
 typedef unsigned int uint;
 
@@ -101,8 +101,10 @@ namespace thrust
 
 		// Shift operators
 		
+        __host__ __device__
 		big_integer<value_size> operator>>(int shift);
-		big_integer<value_size> operator<<(int shift);
+		__host__ __device__
+        big_integer<value_size> operator<<(int shift);
         __host__ __device__
 		big_integer<value_size>& operator>>=(int shift);
         __host__ __device__
@@ -155,6 +157,7 @@ namespace thrust
 		big_integer<value_size> operator|(const big_integer<value_size>& q);
 		big_integer<value_size> operator^(const big_integer<value_size>& q);
 		big_integer<value_size>& operator&=(const big_integer<value_size>& q);
+        __host__ __device__
 		big_integer<value_size>& operator|=(const big_integer<value_size>& q);
 		big_integer<value_size>& operator^=(const big_integer<value_size>& q);
 		big_integer<value_size> operator~();
@@ -164,7 +167,11 @@ namespace thrust
 		int operator==(const big_integer<value_size>& other) const
 		{
 			// device don't have memcmp
-			return memcmp( data, other.data, value_size * sizeof(uint) ) == 0;
+            for (uint i = 0; i < value_size; i++) {
+                if (data[i] != other.data[i])
+                    return false;
+            }
+            return true;
 		}
 
 		
