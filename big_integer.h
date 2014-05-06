@@ -11,11 +11,12 @@
 #include <string.h>
 #include <limits>
 
+#define msb std::numeric_limits<uint>::max() ^ ( std::numeric_limits<uint>::max() >> 1 )
+
 typedef unsigned int uint;
 
 namespace thrust
 {
-	const uint msb = std::numeric_limits<uint>::max() ^ ( std::numeric_limits<uint>::max() >> 1 );
 	const uint max_uint = std::numeric_limits<uint>::max();
 
 	template<uint value_size>

@@ -10,10 +10,15 @@ NVCCFLAGS = -O3 -m64 -arch compute_20
 
 PRIMES = util.h util.cpp primes.h primes.cpp
 
-all:
+all: cuda
+
+cuda:
 	$(CC) $(CFLAGS) -c util.cpp -o util.o $(LDLIBS)
-	nvcc $(NVCCFLAGS) -c primes.cpp -o primes.o
-	$(CC) $(CFLAGS) $(LDLIBS) tests.cpp -o test util.h primes.h util.o primes.o
+	nvcc $(NVCCFLAGS) -c primes.cu -o primes.o
+	$(CC) $(CFLAGS) $(LDLIBS) tests.cpp -o cuda-test util.h primes.h util.o primes.o
+
+cpu:
+	$(CC) $(CFLAGS) $(LDFLAGS) $(PRIMES) tests.cpp -o cpu-test
 
 clean:
 	rm -f *.o test

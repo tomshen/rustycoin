@@ -3,9 +3,7 @@
 #include <string.h>
 #include <vector>
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <driver_functions.h>
+#include <gmp.h>
 #include <gmpxx.h>
 
 #include "primes.h"
