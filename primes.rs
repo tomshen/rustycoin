@@ -148,7 +148,7 @@ fn simple_sieve(primes : &mut Vec<bool>, max_sieve : uint, verbose : bool) -> Ve
     range(2, max_sieve+1).filter(|&n| *primes.get(n)).collect()
 }
 
-fn gen_prime(max_val : &BigUint, max_sieve : uint, verbose : bool) -> uint {
+fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose : bool) -> Vec<BigUint> {
 
     fn candidate_killed_by(candidate : &BigUint, prime : &BigUint) -> bool {
         let zero : BigUint = Zero::zero();
@@ -198,14 +198,8 @@ fn gen_prime(max_val : &BigUint, max_sieve : uint, verbose : bool) -> uint {
         offsets = add_next_prime(max_val, offsets, big(i), big(primorial));
         primorial = primorial * i;
     }
-    let mut count : uint = 0;
-    for o in offsets.iter() {
-        if is_valid_pow(o) {
-            count = count + 1;
-            if verbose { println!("prime: {}", o) }
-        }
-    }
-    count
+    offsets.retain(|o| o >= base_val && is_valid_pow(o));
+    offsets
 }
 
 #[cfg(test)]
@@ -214,15 +208,15 @@ mod test_primes {
 
     #[test]
     fn gen_prime_is_correct() {
-        assert!(gen_prime(&big(100000000), 29, false) == 81u);
+        assert!(gen_prime(&big(0), &big(100000000), 29, false).len() == 81u);
     }
 
     #[test]
     fn simple_sieve_is_correct() {
-        assert!(simple_sieve(5000000, false).len() == 348513);
+        assert!(simple_sieve(&mut Vec::new(), 5000000, false).len() == 348513);
     }
 }
 
 fn main() {
-    println!("{}", gen_prime(&big(100000000), 29, true));
+    println!("{}", gen_prime(&big(0), &big(100000000), 29, true).len());
 }
