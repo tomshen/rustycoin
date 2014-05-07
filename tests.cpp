@@ -37,6 +37,10 @@ void test_is_valid_pow() {
 }
 
 int main(int argc, char** argv) {
-  test_is_prime_fermat();
-  test_is_valid_pow();
+  //test_is_prime_fermat();
+  //test_is_valid_pow();
+  mpz_class max_val = 100000000;
+  uint32_t max_sieve = 29;//500000000;
+  uint32_t count = generate_prime_clusters(max_val, max_sieve, true);
+  expect(80, count, "Didn't find right number of clusters.");
 }

@@ -137,13 +137,21 @@ uint32_t generate_prime_clusters(mpz_class max_val, uint32_t max_sieve,
 
   uint32_t *prime_test_table;
   uint32_t prime_test_size;
+  DEBUG("Starting sieve")
   sieve(&prime_test_table, &prime_test_size, max_sieve);
+  DEBUG("Finished sieve")
 
-  for (uint32_t i = primorial_start+1; i < prime_test_size; i++) {
-    mpz_class prime = i;
+  DEBUG("Starting adding primes")
+  for (uint32_t i = 0; i < prime_test_size; i++) {
+    if (prime_test_table[i] <= primorial_start)
+      continue;
+    mpz_class prime = prime_test_table[i];
     offsets = add_next_prime(offsets, max_val, prime, primorial);
-    primorial *= i;
+    primorial *= prime;
+    DEBUG(prime)
   }
+  DEBUG("Finished adding primes")
+  DEBUG("Checking if PoWs")
   uint32_t count = 0;
   for (std::vector<mpz_class>::iterator o = offsets.begin();
       o != offsets.end(); o++) {

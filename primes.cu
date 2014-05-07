@@ -12,10 +12,9 @@
 
 #include "util.h"
 #include "big_integer.h"
+#include "primes.h"
 
-#define bigi thrust::big_integer<300>
-
-static bigi cluster_offsets[6] = {0, 4, 2, 4, 2, 4};
+bigi cluster_offsets[6] = {0, 4, 2, 4, 2, 4};
 
 __device__
 bool is_even(bigi n) {
@@ -83,7 +82,7 @@ struct is_valid_pow {
     }
     return true;
   }
-  
+
 };
 
 void sieve(uint32_t** prime_test_table, uint32_t* prime_test_size,
@@ -161,7 +160,7 @@ thrust::host_vector<bigi> add_next_prime(thrust::host_vector<bigi> offsets,
   return new_offsets;
 }
 
-thrust::host_vector<bigi> generate_prime_clusters(bigi max_val, uint32_t max_sieve,
+std::vector<bigi> generate_prime_clusters(bigi max_val, uint32_t max_sieve,
     bool verbose) {
   uint32_t primorial_start = 7;
 
@@ -173,20 +172,30 @@ thrust::host_vector<bigi> generate_prime_clusters(bigi max_val, uint32_t max_sie
 
   uint32_t *prime_test_table;
   uint32_t prime_test_size;
+  DEBUG("Starting sieve")
   sieve(&prime_test_table, &prime_test_size, max_sieve);
+  DEBUG("Finished sieve")
 
-  for (uint32_t i = primorial_start+1; i < prime_test_size; i++) {
-    bigi prime = i;
+  DEBUG("Starting adding primes")
+
+  for (uint32_t i = 0; i < prime_test_size; i++) {
+    if (prime_test_table[i] <= primorial_start)
+      continue;
+    bigi prime = prime_test_table[i];
     offsets = add_next_prime(offsets, max_val, prime, primorial);
     primorial = primorial * prime;
+    DEBUG(prime_test_table[i])
   }
-  
-  thrust::device_vector<bigi> candidates = offsets;  
+  DEBUG("Finished adding primes")
+  DEBUG("Checking if PoWs")
+
+  thrust::device_vector<bigi> candidates = offsets;
   thrust::device_vector<bigi> clusters;
-  
+
   thrust::copy_if(candidates.begin(), candidates.end(), clusters.begin(), is_valid_pow());
-  
+
   thrust::host_vector<bigi> result = clusters;
-  
-  return result;
+  std::vector<bigi> primes(result.begin(), result.end());
+
+  return primes;
 }
