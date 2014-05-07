@@ -19,4 +19,4 @@ cleandeps:
 	done
 
 test:
-	rustc --test primes.rs
+	rustc -L deps/rust-bignum/build --test primes.rs
