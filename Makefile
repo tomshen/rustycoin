@@ -3,7 +3,7 @@ DEPS ?= $(wildcard deps/*)
 .PHONY: cleandeps deps
 
 all:
-	rustc -L deps/rust-bignum/build -L primes.rs
+	rustc -L deps/rust-bignum/build primes.rs
 
 deps:
 	@for dep in $(DEPS) ; do \
