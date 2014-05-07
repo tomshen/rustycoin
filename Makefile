@@ -1,7 +1,22 @@
-CC = g++
-CFLAGS = -Wall -Werror -O3 -g -std=c++0x -lgmpxx -lgmp
+DEPS ?= $(wildcard deps/*)
 
-PRIMES = util.h util.cpp primes.h primes.cpp
+.PHONY: cleandeps deps
 
 all:
-	$(CC) $(CFLAGS) $(PRIMES) tests.cpp -o test
+	rustc -L deps/rust-bignum/build -L deps/rust-opencl/build primes.rs
+
+deps:
+	@for dep in $(DEPS) ; do \
+		$(MAKE) -w -C $$dep deps && $(MAKE) -w -C $$dep && $(MAKE) -w -C $$dep build ; \
+	done
+
+clean: cleandeps
+	rm -f primes
+
+cleandeps:
+	@for dep in $(DEPS) ; do \
+		$(MAKE) -w -C $$dep clean ; \
+	done
+
+test:
+	rustc --test primes.rs
