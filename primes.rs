@@ -191,7 +191,7 @@ fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose 
     let mut offsets : Vec<BigUint> = Vec::from_slice([big(97u)]);
 
     let mut primes : Vec<bool> = Vec::new();
-
+    let mut start_time = time::precise_time_s();
     for &i in simple_sieve(&mut primes, max_sieve, verbose).iter() {
         if i <= primorial_start {
             continue
@@ -199,6 +199,8 @@ fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose 
         offsets = add_next_prime(max_val, offsets, big(i), big(primorial));
         primorial = primorial * i;
     }
+    println!("Time to sieve sieve: {}", time::precise_time_s() - start_time);
+
     offsets.retain(|o| o >= base_val && is_valid_pow(o) != None);
     offsets.len()
 }
@@ -233,7 +235,10 @@ fn gen_prime_par(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verb
             let p = prime.clone();
             let mv = max_val.clone();
             let offs = offsets.clone();
+
             spawn(proc() {
+                let mut st = time::precise_time_s();
+
                 let mut vals = Vec::new();
                 for o in offs.iter() {
                     let val = b + *o;
@@ -243,18 +248,20 @@ fn gen_prime_par(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verb
                         }
                     }
                 }
+                println!("{}", time::precise_time_s() - st);
+
                 child_tx.send(vals);
             });
             counter = counter + one;
         }
-        println!("Time to sieve send: {}", time::precise_time_s() - start_time);
+        //println!("Time to sieve send: {}", time::precise_time_s() - start_time);
 
         start_time = time::precise_time_s();
         while counter > zero {
             new_offsets.push_all_move(rx.recv());
             counter = counter - one;
         }
-        println!("Time to sieve receive: {}", time::precise_time_s() - start_time);
+        //println!("Time to sieve receive: {}", time::precise_time_s() - start_time);
 
         new_offsets
     }
@@ -319,5 +326,10 @@ mod test_primes {
 }
 
 fn main() {
-    println!("{}", gen_prime_par(&big(0), &big(1000000000), 210, true));
+    let args = std::os::args();
+    if args.len() < 2 || args[1] == "-p".to_owned() {
+        println!("{}", gen_prime_par(&big(0), &big(1000000000), 210, true));
+    } else if args[1] == "-s".to_owned() {
+        println!("{}", gen_prime(&big(0), &big(1000000000), 210, true));
+    }
 }
