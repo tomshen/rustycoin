@@ -1,5 +1,6 @@
 extern crate num;
 extern crate rand;
+extern crate time;
 extern crate bignum = "bignum#0.1.1-pre";
 
 use bignum::{BigUint, ToBigUint, RandBigInt};
@@ -117,13 +118,13 @@ fn fermat_is_prime(n : &BigUint) -> bool {
     }
 }
 
-fn is_valid_pow(prime : &BigUint) -> bool {
+fn is_valid_pow(prime : &BigUint) -> Option<BigUint> {
     for offset in [big(0u), big(4u), big(6u), big(10u), big(12u), big(16u)].iter() {
         if !fermat_is_prime(&(*prime + *offset)) {
-            return false;
+            return None;
         }
     }
-    true
+    Some(prime.clone())
 }
 
 // Simple sieve
@@ -148,7 +149,7 @@ fn simple_sieve(primes : &mut Vec<bool>, max_sieve : uint, verbose : bool) -> Ve
     range(2, max_sieve+1).filter(|&n| *primes.get(n)).collect()
 }
 
-fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose : bool) -> Vec<BigUint> {
+fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose : bool) -> uint {
 
     fn candidate_killed_by(candidate : &BigUint, prime : &BigUint) -> bool {
         let zero : BigUint = Zero::zero();
@@ -198,11 +199,11 @@ fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose 
         offsets = add_next_prime(max_val, offsets, big(i), big(primorial));
         primorial = primorial * i;
     }
-    offsets.retain(|o| o >= base_val && is_valid_pow(o));
-    offsets
+    offsets.retain(|o| o >= base_val && is_valid_pow(o) != None);
+    offsets.len()
 }
 
-fn gen_prime_par(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose : bool) -> Vec<BigUint> {
+fn gen_prime_par(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose : bool) -> uint {
 
     fn candidate_killed_by(candidate : &BigUint, prime : &BigUint) -> bool {
         let zero : BigUint = Zero::zero();
@@ -245,31 +246,42 @@ fn gen_prime_par(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verb
 
     let mut primes : Vec<bool> = Vec::new();
 
-    for &i in simple_sieve(&mut primes, max_sieve, verbose).iter() {
+    let mut start_time = time::precise_time_s();
+    let sieve = simple_sieve(&mut primes, max_sieve, verbose);
+    println!("Time to sieve: {}", time::precise_time_s() - start_time);
+    start_time = time::precise_time_s();
+    for &i in sieve.iter() {
         if i <= primorial_start {
             continue
         }
         offsets = add_next_prime(max_val, offsets, big(i), big(primorial));
         primorial = primorial * i;
     }
-    
-    offsets.retain(|o| o >= base_val);
-    
-    let rxs = offsets.iter().map( |o| {
-        let (tx, rx) = channel();
+    println!("Time to sieve sieve: {}", time::precise_time_s() - start_time);
+
+
+    start_time = time::precise_time_s();
+    let (tx, rx) = channel();
+    let mut child_count = 0;
+    for o in offsets.iter().filter(|&o| o >= base_val) {
+        let child_tx = tx.clone();
         let b = o.clone();
         spawn(proc() {
-            tx.send(is_valid_pow(&b));
+            child_tx.send(is_valid_pow(&b));
         });
-        rx
-    });
-
-    // Wait on each port, accumulating the results
-    let mut results : Vec<BigUint> = Vec::new();
-    for o in rxs.zip(offsets.iter()).filter_map(|(rx, o)| if rx.recv() {Some(o)} else {None}) {
-        results.push(o.clone());
+        child_count += 1;
     }
-    results
+
+    println!("Time to spawn: {}", time::precise_time_s() - start_time);
+
+    let mut cluster_count = 0;
+    for _ in range(0, child_count) {
+        match rx.recv() {
+            Some(p) => cluster_count += 1,
+            None => ()
+        }
+    }
+    cluster_count
 }
 
 #[cfg(test)]
@@ -278,7 +290,7 @@ mod test_primes {
 
     #[test]
     fn gen_prime_is_correct() {
-        assert!(gen_prime(&big(0), &big(100000000), 29, false).len() == 81u);
+        assert!(gen_prime(&big(0), &big(100000000), 29, false) == 81u);
     }
 
     #[test]
@@ -288,5 +300,5 @@ mod test_primes {
 }
 
 fn main() {
-    println!("{}", gen_prime(&big(0), &big(1000000000), 29, true).len());
+    println!("{}", gen_prime_par(&big(0), &big(1000000000), 210, true));
 }
