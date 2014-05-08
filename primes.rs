@@ -202,6 +202,76 @@ fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose 
     offsets
 }
 
+fn gen_prime_par(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose : bool) -> Vec<BigUint> {
+
+    fn candidate_killed_by(candidate : &BigUint, prime : &BigUint) -> bool {
+        let zero : BigUint = Zero::zero();
+        for &offset in pow_offsets.iter() {
+            let o : BigUint = FromPrimitive::from_uint(offset).unwrap();
+            if (*candidate + o) % *prime == zero {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn add_next_prime (max_val : &BigUint, offsets : Vec<BigUint>, prime : BigUint, primorial : BigUint) -> Vec<BigUint> {
+        let (zero, one): (BigUint, BigUint) = (Zero::zero(), One::one());
+        let mut base : BigUint = Zero::zero();
+        let mut new_offsets : Vec<BigUint> = Vec::new();
+        let mut counter = zero.clone();
+        while counter < prime {
+            if base > *max_val {
+                break
+            }
+            for o in offsets.iter() {
+                    let val = base + *o;
+                    if val > *max_val {
+                        break
+                    }
+                    if !candidate_killed_by(&val, &prime) {
+                        new_offsets.push(val);
+                    }
+            }
+            base = base + primorial;
+            counter = counter + one;
+        }
+        return new_offsets
+    }
+
+    let primorial_start : uint = 7u;
+    let mut primorial : uint = 210u;  // 2*3*5*7
+    let mut offsets : Vec<BigUint> = Vec::from_slice([big(97u)]);
+
+    let mut primes : Vec<bool> = Vec::new();
+
+    for &i in simple_sieve(&mut primes, max_sieve, verbose).iter() {
+        if i <= primorial_start {
+            continue
+        }
+        offsets = add_next_prime(max_val, offsets, big(i), big(primorial));
+        primorial = primorial * i;
+    }
+    
+    offsets.retain(|o| o >= base_val);
+    
+    let rxs = offsets.iter().map( |o| {
+        let (tx, rx) = channel();
+        let b = o.clone();
+        spawn(proc() {
+            tx.send(is_valid_pow(&b));
+        });
+        rx
+    });
+
+    // Wait on each port, accumulating the results
+    let mut results : Vec<BigUint> = Vec::new();
+    for o in rxs.zip(offsets.iter()).filter_map(|(rx, o)| if rx.recv() {Some(o)} else {None}) {
+        results.push(o.clone());
+    }
+    results
+}
+
 #[cfg(test)]
 mod test_primes {
     use super::{big, gen_prime, simple_sieve};
@@ -218,5 +288,5 @@ mod test_primes {
 }
 
 fn main() {
-    println!("{}", gen_prime(&big(0), &big(100000000), 29, true).len());
+    println!("{}", gen_prime(&big(0), &big(1000000000), 29, true).len());
 }
