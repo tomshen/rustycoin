@@ -172,13 +172,13 @@ fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose 
                 break
             }
             for o in offsets.iter() {
-                    let val = base + *o;
-                    if val > *max_val {
-                        break
-                    }
-                    if !candidate_killed_by(&val, &prime) {
-                        new_offsets.push(val);
-                    }
+                let val = base + *o;
+                if val > *max_val {
+                    break
+                }
+                if !candidate_killed_by(&val, &prime) {
+                    new_offsets.push(val);
+                }
             }
             base = base + primorial;
             counter = counter + one;
@@ -208,7 +208,7 @@ fn gen_prime_par(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verb
     fn candidate_killed_by(candidate : &BigUint, prime : &BigUint) -> bool {
         let zero : BigUint = Zero::zero();
         for &offset in pow_offsets.iter() {
-            let o : BigUint = FromPrimitive::from_uint(offset).unwrap();
+            let o : BigUint = big(offset);
             if (*candidate + o) % *prime == zero {
                 return true;
             }
@@ -221,23 +221,42 @@ fn gen_prime_par(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verb
         let mut base : BigUint = Zero::zero();
         let mut new_offsets : Vec<BigUint> = Vec::new();
         let mut counter = zero.clone();
+
+        let mut start_time = time::precise_time_s();
+        let (tx, rx) = channel();
         while counter < prime {
-            if base > *max_val {
+            let b = counter * primorial + base;
+            if b > *max_val {
                 break
             }
-            for o in offsets.iter() {
-                    let val = base + *o;
-                    if val > *max_val {
-                        break
+            let child_tx = tx.clone();
+            let p = prime.clone();
+            let mv = max_val.clone();
+            let offs = offsets.clone();
+            spawn(proc() {
+                let mut vals = Vec::new();
+                for o in offs.iter() {
+                    let val = b + *o;
+                    if val <= mv {
+                        if !candidate_killed_by(&val, &p) {
+                            vals.push(val);
+                        }
                     }
-                    if !candidate_killed_by(&val, &prime) {
-                        new_offsets.push(val);
-                    }
-            }
-            base = base + primorial;
+                }
+                child_tx.send(vals);
+            });
             counter = counter + one;
         }
-        return new_offsets
+        println!("Time to sieve send: {}", time::precise_time_s() - start_time);
+
+        start_time = time::precise_time_s();
+        while counter > zero {
+            new_offsets.push_all_move(rx.recv());
+            counter = counter - one;
+        }
+        println!("Time to sieve receive: {}", time::precise_time_s() - start_time);
+
+        new_offsets
     }
 
     let primorial_start : uint = 7u;
