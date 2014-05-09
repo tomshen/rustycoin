@@ -71,7 +71,7 @@ Ultimately, our algorithm is too slow to function as a Riecoin miner, because of
 
 # References
 * [Riecoin](http://riecoin.org/)
-* [Rust language] (http://www.rust-lang.org/)
+* [Rust language](http://www.rust-lang.org/)
 * [fastrie](https://github.com/dave-andersen/fastrie) - David Andersen's Riecoin CPU miner
 * David Andersen's [blog posts](http://da-data.blogspot.com/2014/03/fast-prime-cluster-search-or-building.html) on prime cluster searching
 * [Rust bignum library](https://github.com/jsanders/rust-bignum)
