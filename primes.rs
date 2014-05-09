@@ -7,7 +7,7 @@ extern crate bignum = "bignum#0.1.1-pre";
 
 use bignum::{BigUint, ToBigUint, RandBigInt};
 use num::{div_mod_floor, Integer};
-use std::num::{Zero, One, pow, Float, FromPrimitive};
+use std::num::{Zero, One, pow, Float, FromPrimitive, FromStrRadix};
 use rand::{task_rng, Rng};
 use rand::distributions::range::SampleRange;
 use std::vec::Vec;
@@ -211,9 +211,6 @@ fn wheel_sieve(sieved : &Vec<uint>, base_val : &BigUint, max_val : &BigUint) -> 
 fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose : bool) -> uint {
     let sieved = simple_sieve(max_sieve, verbose);
     let offsets = wheel_sieve(&sieved, base_val, max_val);
-    for o in offsets.iter() {
-        println!("{}", o);
-    }
     offsets.len()
 }
 
@@ -257,11 +254,11 @@ mod test_primes {
 fn main() {
     let args = std::os::args();
     let min_val = big(0);
-    let max_val = big(1000000000);
+    let max_val : BigUint = BigUint::from_str_radix("4294967296", 10).unwrap();
     if args.len() == 3 && args[1] == "-p".to_owned() {
         let num_tasks = from_str::<uint>(args[2]).unwrap();
-        println!("{}", gen_prime_par(&min_val, &max_val, 210, num_tasks, true));
+        println!("{}", gen_prime_par(&min_val, &max_val, 50000, num_tasks, true));
     } else if args[1] == "-s".to_owned() {
-        println!("{}", gen_prime(&min_val, &max_val, 210, true));
+        println!("{}", gen_prime(&min_val, &max_val, 50000, true));
     }
 }
