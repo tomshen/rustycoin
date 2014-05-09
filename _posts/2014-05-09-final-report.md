@@ -13,7 +13,7 @@ In this project, we explored implementation of a [Riecoin](http://riecoin.org/) 
 # Background
 Riecoin is a cryptocurrency similar to Bitcoin. New units of currency (called Riecoins) can be produced through the process of mining. Every 2.5 minutes, a new block of currency is available to be mined. In order to mine the block and get the currency, the miner must be able to calculate a proof of work, which generally is a number meeting certain constraints that is difficult to calculate but easy to verify.
 
-The Riecoin proof of work algorithm is designed to be resistant to parallelism. The size of the integers in the algorithm makes communication more difficult. Additionally, the complex computation in Riecoin's proof of work makes parallelizing the algorithm non-trivial, unlike other cryptocurrencies such as Bitcoin.
+The Riecoin proof of work algorithm is designed to be resistant to parallelism. The size of the integers in the algorithm makes communication between tasks more difficult. Additionally, the complex computation in Riecoin's proof of work makes parallelizing the algorithm non-trivial, unlike other cryptocurrencies such as Bitcoin.
 
 Riecoin's proof of work is to find a number *X* such that *basep* + *X* is the first prime of a prime cluster, where *basep* is a number that varies in size based on the current difficulty, and *X* must be in a certain range based on the current difficulty. The *difficulty* is adjusted based on how quickly miners were able to mine previous blocks, so that increases in computational power and/or improvements in mining algorithms don't cause too much inflation. Currently, *basep* is around 300 bits long.
 
@@ -61,16 +61,19 @@ We compared our parallelized proof of work algorithm to the sequential version w
 
 ![Graph of speedup](http://www.tomshen.me/rustycoin/media/graph1.JPG)
 
-![Graph of speedup]({{ site.url }}/media/graph2.JPG)
+![Graph of speedup](http://www.tomshen.me/rustycoin/media/graph2.JPG)
 
 As shown on the first graph, the speedup obtained is almost linear with under 8 tasks. However, as we continue increasing the number of tasks, speedup drops off significantly due to our limited number of cores. The maximum speedup we observe is about 23 times faster than the sequential version.
 
-There are various factors that limited our speedup. Handling bignums restricted our ability to use the GPU. There is not a bignum library for Rust on the GPU. In fact, using the GPU for the proof of work algorithm in any language would be difficult, because there is not a fast, easy-to-use library for bignums on GPU available. Also, we believe that Rust's higher-level features and relatively immature bignum library prevented us from reaching the speeds obtainable in C++. 
+There are various factors that we believe limited our speedup. First, handling bignums restricted our ability to use the GPU. There is not a bignum library for Rust on the GPU. In fact, using the GPU for the proof of work algorithm in any language would be difficult, because there is not a fast, comprehensive library for bignums on GPU available. Also, we believe that Rust's higher-level features and relatively immature bignum library prevented us from reaching the speeds obtainable in C++. 
 
 Ultimately, our algorithm is too slow to function as a Riecoin miner, because of the time constraint of 2.5 minutes per block. 
 
 # References
+* [Riecoin](http://riecoin.org/)
+* {Rust language] (http://www.rust-lang.org/)
 * [fastrie](https://github.com/dave-andersen/fastrie) - David Andersen's Riecoin CPU miner
+* David Andersen's [blog posts](http://da-data.blogspot.com/2014/03/fast-prime-cluster-search-or-building.html) on prime cluster searching
 * [Rust bignum library](https://github.com/jsanders/rust-bignum)
 
 # List of Work by Each Student
