@@ -8,11 +8,11 @@
 	<meta property="og:description" content="# Summary The goal of this project is to create the first open source Riecoin GPU miner. We plan on..." />
 	<meta itemprop="image" content="http://www.tomshen.me/rustycoin/assets/images/icon.png" />
 	<meta property="og:image" content="http://www.tomshen.me/rustycoin/assets/images/icon.png" />
-	<meta property="og:title" content="15-418 S14 Final Project - Initial Proposal" />
+	<meta property="og:title" content="Initial Proposal" />
 	<meta property="og:type" content="article" />
 	<meta property="og:url" content="http://www.tomshen.me/rustycoin/initial-proposal" />
 	<meta property="og:site_name" content="RustyCoin" />
-	<title>15-418 S14 Final Project - Initial Proposal &middot; RustyCoin</title>
+	<title>Initial Proposal &middot; RustyCoin</title>
 	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="HandheldFriendly" content="True" />
 	<meta name="MobileOptimized" content="320" />
@@ -47,7 +47,7 @@
 	
 </div>
 	<div id="post-info">
-		<h1>15-418 S14 Final Project - Initial Proposal</h1>
+		<h1>Initial Proposal</h1>
 		
 		<a class="site-title" href="http://www.tomshen.me/rustycoin"><img src="http://www.tomshen.me/rustycoin/assets/images/icon.png" class="site-icon-small">RustyCoin</a>, in 02 April 2014
 	</div>
@@ -72,15 +72,27 @@
 
 <p>The current state-of-the-art miner uses <a href="http://en.wikipedia.org/wiki/Wheel_factorization">wheel factorization</a> to find primes. Our primary challenge (after successfully implementing this algorithm sequentially) is to find places where we can improve on and parallelize this algorithm.</p>
 
-<p>Our main parallelization challenges are:
-* Find candidate primes with sieving in parallel
-  * Using OpenCL rather than CUDA because of better support
-  * Sharing information rather than repeating computation (which is what currently is done in the CPU miner)
-* Check primality of candidate primes in parallel
-  * Finding and implementing a primality test that will benefit from parallelization
-* Parallelizing arbitrary-precision integer arithmetic
-  * Difficult to correctly implement in parallel
-  * Only if we have extra time</p>
+<p>Our main parallelization challenges are:</p>
+
+<ul>
+<li>Find candidate primes with sieving in parallel
+
+<ul>
+<li>Using OpenCL rather than CUDA because of better support</li>
+<li>Sharing information rather than repeating computation (which is what currently is done in the CPU miner)</li>
+</ul></li>
+<li>Check primality of candidate primes in parallel
+
+<ul>
+<li>Finding and implementing a primality test that will benefit from parallelization</li>
+</ul></li>
+<li>Parallelizing arbitrary-precision integer arithmetic
+
+<ul>
+<li>Difficult to correctly implement in parallel</li>
+<li>Only if we have extra time</li>
+</ul></li>
+</ul>
 
 <h1 id="toc_3">Resources</h1>
 
@@ -156,6 +168,20 @@
 </tbody></table>
 
 </div>
+
+<footer class="clean" style="background-image: url(http://www.tomshen.me/rustycoin/assets/images/cover.jpg);height: 75%; min-height: 500px;">
+	<div id="nav-icon" style="top: 25px;">
+		<a class="scroll" data-speed="1000" href="#article"><span class="genericon genericon-collapse"></span></a>
+	</div>
+	<div id="post-info">
+		<h3>Featured post</h3>
+		<a href="/final-report">
+			<h1>Final Report</h1>
+			
+		</a>
+	</div>
+	<p class="copyright">&copy;2014, <a href="http://www.tomshen.me" target="_blank">Tom Shen</a>. <a href="http://creativecommons.org/licenses/by-nc/2.5" target="_blank">Some rights reserved</a>.</p>
+</footer>
 
 <script src="http://www.tomshen.me/rustycoin/assets/js/smooth-scroll.js"></script>
 </body>

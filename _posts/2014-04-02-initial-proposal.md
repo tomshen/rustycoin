@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "15-418 S14 Final Project - Initial Proposal"
+title:  "Initial Proposal"
 date:   2014-04-02 20:45:54
 image: false
 video: false
@@ -21,6 +21,7 @@ The search range for the prime constellations starts at very large numbers: when
 The current state-of-the-art miner uses [wheel factorization](http://en.wikipedia.org/wiki/Wheel_factorization) to find primes. Our primary challenge (after successfully implementing this algorithm sequentially) is to find places where we can improve on and parallelize this algorithm.
 
 Our main parallelization challenges are:
+
 * Find candidate primes with sieving in parallel
   * Using OpenCL rather than CUDA because of better support
   * Sharing information rather than repeating computation (which is what currently is done in the CPU miner)
