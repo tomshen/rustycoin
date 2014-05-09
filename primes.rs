@@ -1,6 +1,8 @@
 extern crate num;
 extern crate rand;
 extern crate time;
+extern crate sync;
+
 extern crate bignum = "bignum#0.1.1-pre";
 
 use bignum::{BigUint, ToBigUint, RandBigInt};
@@ -14,6 +16,8 @@ use std::iter::{FromIterator};
 use std::clone::Clone;
 use std::ops::{Shr, BitAnd};
 use std::bool;
+
+use sync::Arc;
 
 static pow_offsets : &'static[uint] = &[0u, 4u, 6u, 10u, 12u, 16u];
 
@@ -128,186 +132,111 @@ fn is_valid_pow(prime : &BigUint) -> Option<BigUint> {
 }
 
 // Simple sieve
-fn simple_sieve(primes : &mut Vec<bool>, max_sieve : uint, verbose : bool) -> Vec<uint> {
+fn simple_sieve(max_sieve : uint, verbose : bool) -> Vec<uint> {
     #[inline]
     fn int_sqrt(n: uint) -> uint { (n as f64).sqrt() as uint }
 
-    if primes.len() <= max_sieve {
-        *primes = Vec::from_elem(max_sieve+1, true);
-        *primes.get_mut(0) = false;
-        *primes.get_mut(1) = false;
-        for prime in range(2, int_sqrt(max_sieve) + 1) {
-            if *primes.get(prime) {
-                for multiple in iter::range_step(prime * prime, max_sieve + 1, prime) {
-                    *primes.get_mut(multiple) = false
-                }
-                if verbose { println!("Sieved {}", prime) }
+    let mut primes = Vec::from_elem(max_sieve+1, true);
+    *primes.get_mut(0) = false;
+    *primes.get_mut(1) = false;
+    for prime in range(2, int_sqrt(max_sieve) + 1) {
+        if *primes.get(prime) {
+            for multiple in iter::range_step(prime * prime, max_sieve + 1, prime) {
+                *primes.get_mut(multiple) = false
             }
+            if verbose { println!("Sieved {}", prime) }
         }
     }
     if verbose { println!("Finished sieving") }
     range(2, max_sieve+1).filter(|&n| *primes.get(n)).collect()
 }
-
-fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose : bool) -> uint {
-
-    fn candidate_killed_by(candidate : &BigUint, prime : &BigUint) -> bool {
-        let zero : BigUint = Zero::zero();
-        for &offset in pow_offsets.iter() {
-            let o : BigUint = FromPrimitive::from_uint(offset).unwrap();
-            if (*candidate + o) % *prime == zero {
-                return true;
-            }
+fn candidate_killed_by(candidate : &BigUint, prime : &BigUint) -> bool {
+    let zero : BigUint = Zero::zero();
+    for &offset in pow_offsets.iter() {
+        let o : BigUint = big(offset);
+        if (*candidate + o) % *prime == zero {
+            return true;
         }
-        false
     }
+    false
+}
 
-    fn add_next_prime (max_val : &BigUint, offsets : Vec<BigUint>, prime : BigUint, primorial : BigUint) -> Vec<BigUint> {
-        let (zero, one): (BigUint, BigUint) = (Zero::zero(), One::one());
-        let mut base : BigUint = Zero::zero();
-        let mut new_offsets : Vec<BigUint> = Vec::new();
-        let mut counter = zero.clone();
-        while counter < prime {
-            if base > *max_val {
+fn add_next_prime (max_val : &BigUint, offsets : Vec<BigUint>,
+    prime : BigUint, primorial : BigUint, min_val : BigUint) -> Vec<BigUint> {
+    let (zero, one): (BigUint, BigUint) = (Zero::zero(), One::one());
+    let mut base : BigUint = zero.clone();
+    let mut new_offsets : Vec<BigUint> = Vec::new();
+    let mut counter = zero.clone();
+    while counter < prime {
+        if base + min_val > *max_val {
+            break
+        }
+        for o in offsets.iter() {
+            let val = min_val + base + *o;
+            if val > *max_val {
                 break
             }
-            for o in offsets.iter() {
-                let val = base + *o;
-                if val > *max_val {
-                    break
-                }
-                if !candidate_killed_by(&val, &prime) {
-                    new_offsets.push(val);
-                }
+            if !candidate_killed_by(&val, &prime) {
+                new_offsets.push(val - min_val);
             }
-            base = base + primorial;
-            counter = counter + one;
         }
-        return new_offsets
+        base = base + primorial;
+        counter = counter + one;
     }
+    new_offsets
+}
 
+fn wheel_sieve(sieved : &Vec<uint>, base_val : &BigUint, max_val : &BigUint) -> Vec<BigUint> {
     let primorial_start : uint = 7u;
     let mut primorial : uint = 210u;  // 2*3*5*7
     let mut offsets : Vec<BigUint> = Vec::from_slice([big(97u)]);
 
-    let mut primes : Vec<bool> = Vec::new();
-    let mut start_time = time::precise_time_s();
-    for &i in simple_sieve(&mut primes, max_sieve, verbose).iter() {
+    //let mut start_time = time::precise_time_s();
+    let mut min_val : BigUint = Zero::zero();
+    for &i in sieved.iter() {
         if i <= primorial_start {
             continue
         }
-        offsets = add_next_prime(max_val, offsets, big(i), big(primorial));
+        min_val = (base_val / big(primorial)) * big(primorial);
+        offsets = add_next_prime(max_val, offsets, big(i), big(primorial),
+            min_val.clone());
         primorial = primorial * i;
     }
-    println!("Time to sieve sieve: {}", time::precise_time_s() - start_time);
+    //println!("Time to sieve sieve: {}", time::precise_time_s() - start_time);
 
-    offsets.retain(|o| o >= base_val && is_valid_pow(o) != None);
+    offsets.retain(|o| is_valid_pow(&(o+min_val)) != None);
+    offsets
+}
+
+fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose : bool) -> uint {
+    let sieved = simple_sieve(max_sieve, verbose);
+    let offsets = wheel_sieve(&sieved, base_val, max_val);
+    for o in offsets.iter() {
+        println!("{}", o);
+    }
     offsets.len()
 }
 
-fn gen_prime_par(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose : bool) -> uint {
+fn gen_prime_par(base_val : &BigUint, max_val : &BigUint, max_sieve : uint,
+    num_tasks : uint, verbose : bool) -> uint {
+    let sieved = Arc::new(simple_sieve(max_sieve, verbose));
 
-    fn candidate_killed_by(candidate : &BigUint, prime : &BigUint) -> bool {
-        let zero : BigUint = Zero::zero();
-        for &offset in pow_offsets.iter() {
-            let o : BigUint = big(offset);
-            if (*candidate + o) % *prime == zero {
-                return true;
-            }
-        }
-        false
-    }
-
-    fn add_next_prime (max_val : &BigUint, offsets : Vec<BigUint>, prime : BigUint, primorial : BigUint) -> Vec<BigUint> {
-        let (zero, one): (BigUint, BigUint) = (Zero::zero(), One::one());
-        let mut base : BigUint = Zero::zero();
-        let mut new_offsets : Vec<BigUint> = Vec::new();
-        let mut counter = zero.clone();
-
-        let mut start_time = time::precise_time_s();
-        let (tx, rx) = channel();
-        while counter < prime {
-            let b = counter * primorial + base;
-            if b > *max_val {
-                break
-            }
-            let child_tx = tx.clone();
-            let p = prime.clone();
-            let mv = max_val.clone();
-            let offs = offsets.clone();
-
-            spawn(proc() {
-                let mut st = time::precise_time_s();
-
-                let mut vals = Vec::new();
-                for o in offs.iter() {
-                    let val = b + *o;
-                    if val <= mv {
-                        if !candidate_killed_by(&val, &p) {
-                            vals.push(val);
-                        }
-                    }
-                }
-                println!("{}", time::precise_time_s() - st);
-
-                child_tx.send(vals);
-            });
-            counter = counter + one;
-        }
-        //println!("Time to sieve send: {}", time::precise_time_s() - start_time);
-
-        start_time = time::precise_time_s();
-        while counter > zero {
-            new_offsets.push_all_move(rx.recv());
-            counter = counter - one;
-        }
-        //println!("Time to sieve receive: {}", time::precise_time_s() - start_time);
-
-        new_offsets
-    }
-
-    let primorial_start : uint = 7u;
-    let mut primorial : uint = 210u;  // 2*3*5*7
-    let mut offsets : Vec<BigUint> = Vec::from_slice([big(97u)]);
-
-    let mut primes : Vec<bool> = Vec::new();
-
-    let mut start_time = time::precise_time_s();
-    let sieve = simple_sieve(&mut primes, max_sieve, verbose);
-    println!("Time to sieve: {}", time::precise_time_s() - start_time);
-    start_time = time::precise_time_s();
-    for &i in sieve.iter() {
-        if i <= primorial_start {
-            continue
-        }
-        offsets = add_next_prime(max_val, offsets, big(i), big(primorial));
-        primorial = primorial * i;
-    }
-    println!("Time to sieve sieve: {}", time::precise_time_s() - start_time);
-
-
-    start_time = time::precise_time_s();
+    let mut count = 0;
     let (tx, rx) = channel();
-    let mut child_count = 0;
-    for o in offsets.iter().filter(|&o| o >= base_val) {
+    for i in range(0, num_tasks) {
+        let start_val = base_val + (big(i) * (max_val-*base_val)) / big(num_tasks);
+        let end_val = base_val + (big(i+1) * (max_val-*base_val)) / big(num_tasks);
         let child_tx = tx.clone();
-        let b = o.clone();
+        let child_sieved = sieved.clone();
         spawn(proc() {
-            child_tx.send(is_valid_pow(&b));
+            child_tx.send(wheel_sieve(child_sieved.deref(), &start_val, &end_val).len());
         });
-        child_count += 1;
     }
 
-    println!("Time to spawn: {}", time::precise_time_s() - start_time);
-
-    let mut cluster_count = 0;
-    for _ in range(0, child_count) {
-        match rx.recv() {
-            Some(p) => cluster_count += 1,
-            None => ()
-        }
+    for i in range(0, num_tasks) {
+        count += rx.recv();
     }
-    cluster_count
+    count
 }
 
 #[cfg(test)]
@@ -327,9 +256,12 @@ mod test_primes {
 
 fn main() {
     let args = std::os::args();
-    if args.len() < 2 || args[1] == "-p".to_owned() {
-        println!("{}", gen_prime_par(&big(0), &big(1000000000), 210, true));
+    let min_val = big(0);
+    let max_val = big(1000000000);
+    if args.len() == 3 && args[1] == "-p".to_owned() {
+        let num_tasks = from_str::<uint>(args[2]).unwrap();
+        println!("{}", gen_prime_par(&min_val, &max_val, 210, num_tasks, true));
     } else if args[1] == "-s".to_owned() {
-        println!("{}", gen_prime(&big(0), &big(1000000000), 210, true));
+        println!("{}", gen_prime(&min_val, &max_val, 210, true));
     }
 }

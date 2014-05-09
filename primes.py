@@ -83,6 +83,12 @@ def is_probable_prime(n):
 
     return True # no base tested showed n as composite
 
+def is_valid_pow(p):
+    for i in [0,4,6,10,12,16]:
+        if not is_probable_prime(p+i):
+            return False
+    return True
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         print(is_probable_prime(int(sys.argv[1])))
