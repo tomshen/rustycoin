@@ -54,18 +54,24 @@ The target machine for our implementation was the unix2.andrew.cmu.edu server, b
 Since our search range starts with a 300-bit number, we needed to use arbitrary-precision integers in all of our computations. Initially, we tried to use the bigint implementation in Rust's standard library, [BigUint](http://static.rust-lang.org/doc/master/num/bigint/struct.BigUint.html). However, that implementation was written fairly inefficiently in Rust, and thus was far too slow for our purposes. We instead chose to use a package we found on Github called [rust-bignum](https://github.com/jsanders/rust-bignum), which in theory was a drop-in replacement for Rust's standard bigint implementation. This implementation was a wrapper around [GMP](https://gmplib.org/), the most popular C library for abitrary precision numbers. However, this Rust library was buggy (we actually contributed a few bug fixes) and did not completely implement the standard library's interface, leading to many hours of confused debugging. Additionally, it still wasn't as fast as the actual GMP library, due to imperfect bindings.
 
 # Results
-How successful were you at achieving your goals? We expect results sections to differ from project to project, but we expect your evaluation to be very thorough (your project evaluation is a great way to demonstrate you understood topics from this course). Here are a few ideas:
 
-If your project was optimizing an algorithm, please define how you measured performance. Is it wall-clock time? Speedup? An application specific rate? (e.g., moves per second, images/sec)
-Please also describe your experimental setup. What were the size of the inputs? How were requests generated?
-Provide graphs of speedup or execute time. Please precisely define the configurations being compared. Is your baseline single-threaded CPU code? It is an optimized parallel implementation for a single CPU?
-Recall the importance of problem size. Is it important to report results for different problem sizes for your project? Do different workloads exhibit different execution behavior?
-IMPORTANT: What limited your speedup? Is it a lack of parallelism? (dependencies) Communication or synchronization overhead? Data transfer (memory-bound or bus transfer bound). Poor SIMD utilization due to divergence? As you try and answer these questions, we strongly prefer that you provide data and measurements to support your conclusions. If you are merely speculating, please state this explicitly. Performing a solid analysis of your implementation is a good way to pick up credit even if your optimization efforts did not yield the performance you were hoping for.
-Deeper analysis: Can you break execution time of your algorithm into a number of distinct components. What percentage of time is spent in each region? Where is there room to improve?
-Was your choice of machine target sound? (If you chose a GPU, would a CPU have been a better choice? Or vice versa.)
+We compared our parallelized proof of work algorithm to the sequential version we wrote in Rust on a 24-core Linux machine, the unix2.andrew.cmu.edu server. We considered a 64-bit base value and a 32-bit range (from 0xfedcba0900000000 to 0xfedcba09ffffffff). In the graphs below, we measured the time it took to find a prime sextuplet in the given range as we varied the number of tasks launched. 
+
+![Graph of speedup](/media/graph1.jpg)
+
+![Graph of speedup](/media/graph2.jpg)
+
+As shown on the graphs, the speedup is almost linear for under 8 tasks. However, as we continue increasing the number of tasks, speedup drops off significantly. We see a decrease in speedup due to communication overhead, 
+
+The Riecoin proof of work algorithm is designed to be resistant to parallelism. The size of the integers needed makes communicating results between tasks more difficult. Additionally, the complex computation involved in finding candidate primes makes dividing work among processors more difficult.
+
+The need to handle bignums limited our ability to use the GPU. There does not exist a bignum library for Rust on the GPU. In fact, using the GPU for the proof of work algorithm in any language would be difficult, because there is not a fast, accessible library for bignums on GPU available.  
+
+Ultimately, our algorithm is too slow to function as a Riecoin miner, because of the time constraint of 2.5 minutes per block. 
 
 # References
-Please provide a list of references used in the project.
+* [fastrie](https://github.com/dave-andersen/fastrie) - David Andersen's Riecoin CPU miner
+* [Rust bignum library](https://github.com/jsanders/rust-bignum)
 
 # List of Work by Each Student
 Equal work was performed by both project members.
