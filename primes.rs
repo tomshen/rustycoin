@@ -1,23 +1,21 @@
 extern crate num;
 extern crate rand;
-extern crate time;
 extern crate sync;
+extern crate time;
 
 extern crate bignum = "bignum#0.1.1-pre";
 
-use bignum::{BigUint, ToBigUint, RandBigInt};
-use num::{div_mod_floor, Integer};
-use std::num::{Zero, One, pow, Float, FromPrimitive, FromStrRadix};
-use rand::{task_rng, Rng};
-use rand::distributions::range::SampleRange;
+use std::num::{Zero, One, pow, Float};
 use std::vec::Vec;
 use std::iter;
-use std::iter::{FromIterator};
 use std::clone::Clone;
 use std::ops::{Shr, BitAnd};
-use std::bool;
 
+use num::{div_mod_floor, Integer};
+use rand::task_rng;
 use sync::Arc;
+
+use bignum::{BigUint, ToBigUint, RandBigInt};
 
 static pow_offsets : &'static[uint] = &[0u, 4u, 6u, 10u, 12u, 16u];
 
@@ -108,7 +106,7 @@ fn rm_is_prime(n : &BigUint) -> bool {
 }
 
 fn fermat_is_prime(n : &BigUint) -> bool {
-    let (zero, one): (BigUint, BigUint) = (Zero::zero(), One::one());
+    let one : BigUint = One::one();
     let two = one + one;
 
     if n == &two {
@@ -122,13 +120,22 @@ fn fermat_is_prime(n : &BigUint) -> bool {
     }
 }
 
-fn is_valid_pow(prime : &BigUint) -> Option<BigUint> {
+fn is_valid_pow(prime : &BigUint) -> bool {
     for offset in [big(0u), big(4u), big(6u), big(10u), big(12u), big(16u)].iter() {
         if !fermat_is_prime(&(*prime + *offset)) {
-            return None;
+            return false;
         }
     }
-    Some(prime.clone())
+    true
+}
+
+fn is_valid_pow_rm(prime : &BigUint) -> bool {
+    for offset in [big(0u), big(4u), big(6u), big(10u), big(12u), big(16u)].iter() {
+        if !rm_is_prime(&(*prime + *offset)) {
+            return false;
+        }
+    }
+    true
 }
 
 // Simple sieve
@@ -186,54 +193,75 @@ fn add_next_prime (max_val : &BigUint, offsets : Vec<BigUint>,
     new_offsets
 }
 
-fn wheel_sieve(sieved : &Vec<uint>, base_val : &BigUint, max_val : &BigUint) -> Vec<BigUint> {
+fn wheel_sieve(sieved : &Vec<uint>, base_val : &BigUint, max_val : &BigUint) -> Option<BigUint> {
     let primorial_start : uint = 7u;
     let mut primorial : uint = 210u;  // 2*3*5*7
     let mut offsets : Vec<BigUint> = Vec::from_slice([big(97u)]);
 
-    //let mut start_time = time::precise_time_s();
-    let mut min_val : BigUint = Zero::zero();
     for &i in sieved.iter() {
+        unsafe {
+            if found_cluster {
+                return None;
+            }
+        }
         if i <= primorial_start {
             continue
         }
-        min_val = (base_val / big(primorial)) * big(primorial);
+        let min_val = (base_val / big(primorial)) * big(primorial);
         offsets = add_next_prime(max_val, offsets, big(i), big(primorial),
             min_val.clone());
         primorial = primorial * i;
+        for o in offsets.iter() {
+            unsafe {
+                if found_cluster {
+                    return None;
+                }
+            }
+            let candidate = o + min_val;
+            if is_valid_pow(&candidate) {
+                if is_valid_pow_rm(&candidate) {
+                    unsafe { found_cluster = true; }
+                    return Some(candidate);
+                }
+            }
+        }
     }
-    //println!("Time to sieve sieve: {}", time::precise_time_s() - start_time);
-
-    offsets.retain(|o| is_valid_pow(&(o+min_val)) != None);
-    offsets
+    None
 }
 
-fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose : bool) -> uint {
+fn gen_prime(base_val : &BigUint, max_val : &BigUint, max_sieve : uint, verbose : bool) -> Option<BigUint> {
     let sieved = simple_sieve(max_sieve, verbose);
-    let offsets = wheel_sieve(&sieved, base_val, max_val);
-    offsets.len()
+    wheel_sieve(&sieved, base_val, max_val)
 }
 
+static mut found_cluster : bool = false;
 fn gen_prime_par(base_val : &BigUint, max_val : &BigUint, max_sieve : uint,
-    num_tasks : uint, verbose : bool) -> uint {
+    num_tasks : uint, verbose : bool) -> Option<BigUint> {
     let sieved = Arc::new(simple_sieve(max_sieve, verbose));
 
-    let mut count = 0;
     let (tx, rx) = channel();
+    let inc = (max_val - *base_val) / big(num_tasks);
     for i in range(0, num_tasks) {
-        let start_val = base_val + (big(i) * (max_val-*base_val)) / big(num_tasks);
-        let end_val = base_val + (big(i+1) * (max_val-*base_val)) / big(num_tasks);
+        let start_val = base_val + big(i) * inc;
+        let end_val = base_val + big(i+1) * inc;
         let child_tx = tx.clone();
         let child_sieved = sieved.clone();
         spawn(proc() {
-            child_tx.send(wheel_sieve(child_sieved.deref(), &start_val, &end_val).len());
+            child_tx.send(wheel_sieve(child_sieved.deref(), &start_val, &end_val));
         });
     }
-
-    for i in range(0, num_tasks) {
-        count += rx.recv();
+    let mut result = None;
+    for _ in range(0, num_tasks) {
+        match rx.recv() {
+            None => continue,
+            Some(v) => {
+                result = Some(v);
+                println!("Found candidate: {}", result);
+            }
+        }
     }
-    count
+    unsafe { found_cluster = false; }
+    result
 }
 
 #[cfg(test)]
@@ -253,8 +281,8 @@ mod test_primes {
 
 fn main() {
     let args = std::os::args();
-    let min_val = big(0);
-    let max_val : BigUint = BigUint::from_str_radix("4294967296", 10).unwrap();
+    let min_val = big(0x123123123123000);
+    let max_val : BigUint = BigUint::from_str_radix("123123123123ffff", 16).unwrap();
     if args.len() == 3 && args[1] == "-p".to_owned() {
         let num_tasks = from_str::<uint>(args[2]).unwrap();
         println!("{}", gen_prime_par(&min_val, &max_val, 50000, num_tasks, true));
