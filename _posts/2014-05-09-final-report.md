@@ -57,15 +57,15 @@ Since our search range starts with a 300-bit number, we needed to use arbitrary-
 
 We compared our parallelized proof of work algorithm to the sequential version we wrote in Rust on a 24-core Linux machine, the unix2.andrew.cmu.edu server. We considered a 64-bit base value and a 32-bit range (from 0xfedcba0900000000 to 0xfedcba09ffffffff). In the graphs below, we measured the time it took to find a prime sextuplet in the given range as we varied the number of tasks launched. 
 
-![Graph of speedup](/media/graph1.jpg)
+![Graph of speedup](media/graph1.jpg)
 
-![Graph of speedup](/media/graph2.jpg)
+![Graph of speedup](/media/graph2.JPG)
 
-As shown on the graphs, the speedup is almost linear for under 8 tasks. However, as we continue increasing the number of tasks, speedup drops off significantly. We see a decrease in speedup due to communication overhead, 
+As shown on the first graph, the speedup obtained is almost linear for under 8 tasks. However, as we continue increasing the number of tasks, speedup drops off significantly. We see a decrease in speedup due to the communication overhead of launching tasks. 
 
 The Riecoin proof of work algorithm is designed to be resistant to parallelism. The size of the integers needed makes communicating results between tasks more difficult. Additionally, the complex computation involved in finding candidate primes makes dividing work among processors more difficult.
 
-The need to handle bignums limited our ability to use the GPU. There does not exist a bignum library for Rust on the GPU. In fact, using the GPU for the proof of work algorithm in any language would be difficult, because there is not a fast, accessible library for bignums on GPU available.  
+The need to handle bignums limited our ability to use the GPU. There does not exist a bignum library for Rust on the GPU. In fact, using the GPU for the proof of work algorithm in any language would be difficult, because there is not a fast, accessible library for bignums on GPU available. Also, we believe that Rust's higher-level features and relatively immature bignum library prevented us from reaching the speeds obtainable in C++. 
 
 Ultimately, our algorithm is too slow to function as a Riecoin miner, because of the time constraint of 2.5 minutes per block. 
 
