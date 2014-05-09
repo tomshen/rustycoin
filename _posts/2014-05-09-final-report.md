@@ -57,9 +57,9 @@ Since our search range starts with a 300-bit number, we needed to use arbitrary-
 
 We compared our parallelized proof of work algorithm to the sequential version we wrote in Rust on a 24-core Linux machine, the unix2.andrew.cmu.edu server. We considered a 64-bit base value and a 32-bit range (from 0xfedcba0900000000 to 0xfedcba09ffffffff). In the graphs below, we measured the time it took to find a prime sextuplet in the given range as we varied the number of tasks launched. 
 
-![Graph of speedup](media/graph1.jpg)
+![Graph of speedup]({{ site.url }}/media/graph1.jpg)
 
-![Graph of speedup](/media/graph2.JPG)
+![Graph of speedup]({{ site.url }}/media/graph2.jpg)
 
 As shown on the first graph, the speedup obtained is almost linear for under 8 tasks. However, as we continue increasing the number of tasks, speedup drops off significantly. We see a decrease in speedup due to the communication overhead of launching tasks. 
 
