@@ -56,18 +56,15 @@
 	</div>
 </header>
 <div id="article">
-	<h1 id="toc_0">Summary</h1>
+	<h1 id="summary">Summary</h1>
+<p>The goal of this project is to create the first open source Riecoin GPU miner. We plan on first implementing a simple serial CPU version, based on David Andersen’s <a href="https://github.com/dave-andersen/fastrie">CPU miner</a>. Then, we plan on parallelizing on a single machine using <a href="https://github.com/luqmana/rust-opencl">OpenCL</a>. Finally, if we have time, we plan on parallelizing across multiple machines.</p>
 
-<p>The goal of this project is to create the first open source Riecoin GPU miner. We plan on first implementing a simple serial CPU version, based on David Andersen&#39;s <a href="https://github.com/dave-andersen/fastrie">CPU miner</a>. Then, we plan on parallelizing on a single machine using <a href="https://github.com/luqmana/rust-opencl">OpenCL</a>. Finally, if we have time, we plan on parallelizing across multiple machines.</p>
-
-<h1 id="toc_1">Background</h1>
-
-<p><a href="http://riecoin.org">Riecoin</a> is a decentralized digital currency, similar to Bitcoin. It differs from Bitcoin in that its proof of work algorithm actually does something useful, rather than just check for sha256 collisions. In particular, the proof of work is based on finding a prime &quot;constellation&quot;: a sextuplet of &quot;consecutive&quot; prime numbers (a sequence of primes of the form <em>n, n+4, n+6, n+10, n+12, n+16</em>). This prime constellation must be within a certain given range.</p>
+<h1 id="background">Background</h1>
+<p><a href="http://riecoin.org">Riecoin</a> is a decentralized digital currency, similar to Bitcoin. It differs from Bitcoin in that its proof of work algorithm actually does something useful, rather than just check for sha256 collisions. In particular, the proof of work is based on finding a prime “constellation”: a sextuplet of “consecutive” prime numbers (a sequence of primes of the form <em>n, n+4, n+6, n+10, n+12, n+16</em>). This prime constellation must be within a certain given range.</p>
 
 <p>Currently, there exists a parallel CPU miner for Riecoin, as we mentioned in the summary. However, it is a very naive implementation due to not sharing data between threads. Additionally, GPU miners for digital currencies tend to perform much better due to how parallelizable most proofs of work are. However, an open source GPU miner does not currently exist for Riecoin.</p>
 
-<h1 id="toc_2">Challenge</h1>
-
+<h1 id="challenge">Challenge</h1>
 <p>The search range for the prime constellations starts at very large numbers: when Riecoin first launched, the target (start) number was 304-bits long, and the difficulty has been increasing ever since then. Additionally, since a new block is available every 2.5 minutes (and thus a new target number and limit), any miner must be able to search for and verify primality of large primes very quickly. This is where parallelization comes in.</p>
 
 <p>The current state-of-the-art miner uses <a href="http://en.wikipedia.org/wiki/Wheel_factorization">wheel factorization</a> to find primes. Our primary challenge (after successfully implementing this algorithm sequentially) is to find places where we can improve on and parallelize this algorithm.</p>
@@ -75,97 +72,66 @@
 <p>Our main parallelization challenges are:</p>
 
 <ul>
-<li>Find candidate primes with sieving in parallel
-
-<ul>
-<li>Using OpenCL rather than CUDA because of better support</li>
-<li>Sharing information rather than repeating computation (which is what currently is done in the CPU miner)</li>
-</ul></li>
-<li>Check primality of candidate primes in parallel
-
-<ul>
-<li>Finding and implementing a primality test that will benefit from parallelization</li>
-</ul></li>
-<li>Parallelizing arbitrary-precision integer arithmetic
-
-<ul>
-<li>Difficult to correctly implement in parallel</li>
-<li>Only if we have extra time</li>
-</ul></li>
+  <li>Find candidate primes with sieving in parallel
+    <ul>
+      <li>Using OpenCL rather than CUDA because of better support</li>
+      <li>Sharing information rather than repeating computation (which is what currently is done in the CPU miner)</li>
+    </ul>
+  </li>
+  <li>Check primality of candidate primes in parallel
+    <ul>
+      <li>Finding and implementing a primality test that will benefit from parallelization</li>
+    </ul>
+  </li>
+  <li>Parallelizing arbitrary-precision integer arithmetic
+    <ul>
+      <li>Difficult to correctly implement in parallel</li>
+      <li>Only if we have extra time</li>
+    </ul>
+  </li>
 </ul>
 
-<h1 id="toc_3">Resources</h1>
-
+<h1 id="resources">Resources</h1>
 <ul>
-<li><a href="http://www.rust-lang.org/">Rust</a> - safe, concurrent systems programming language</li>
-<li><a href="https://www.khronos.org/opencl/">OpenCL</a> - GPU computation framework
-
-<ul>
-<li><a href="https://github.com/luqmana/rust-opencl">rust-opencl</a> - OpenCL bindings for Rust</li>
-</ul></li>
-<li><a href="https://github.com/dave-andersen/fastrie">fastrie</a> - Riecoin CPU minter</li>
-<li>David Andersen - both consulting with him in person and his blog posts (e.g. <a href="http://da-data.blogspot.com/2014/03/fast-prime-cluster-search-or-building.html">his post on fast prime cluster searching</a>)</li>
-<li>GHC 3000 machines</li>
+  <li><a href="http://www.rust-lang.org/">Rust</a> - safe, concurrent systems programming language</li>
+  <li><a href="https://www.khronos.org/opencl/">OpenCL</a> - GPU computation framework
+    <ul>
+      <li><a href="https://github.com/luqmana/rust-opencl">rust-opencl</a> - OpenCL bindings for Rust</li>
+    </ul>
+  </li>
+  <li><a href="https://github.com/dave-andersen/fastrie">fastrie</a> - Riecoin CPU minter</li>
+  <li>David Andersen - both consulting with him in person and his blog posts (e.g. <a href="http://da-data.blogspot.com/2014/03/fast-prime-cluster-search-or-building.html">his post on fast prime cluster searching</a>)</li>
+  <li>GHC 3000 machines</li>
 </ul>
 
-<h1 id="toc_4">Goals &amp; Deliverables</h1>
+<h1 id="goals--deliverables">Goals &amp; Deliverables</h1>
+<p>## Plan to achieve
+* Implement a sequential Riecoin proof of work algorithm
+* Use GPU for parallel prime cluster searching
+* Achieve better performance than CPU miner on a GHC machine</p>
 
-<h2 id="toc_5">Plan to achieve</h2>
-
+<h2 id="hope-to-achieve">Hope to achieve</h2>
 <ul>
-<li>Implement a sequential Riecoin proof of work algorithm</li>
-<li>Use GPU for parallel prime cluster searching</li>
-<li>Achieve better performance than CPU miner on a GHC machine</li>
+  <li>Parallelize rest of computation (fast prime verification)</li>
+  <li>Implement complete Riecoin miner</li>
+  <li>Parallelize arbitrary-precision integer arithmetic</li>
 </ul>
 
-<h2 id="toc_6">Hope to achieve</h2>
-
+<h1 id="platform">Platform</h1>
 <ul>
-<li>Parallelize rest of computation (fast prime verification)</li>
-<li>Implement complete Riecoin miner</li>
-<li>Parallelize arbitrary-precision integer arithmetic</li>
+  <li>We plan to implement our miner in Rust, because it runs nearly as fast as C++ while also cleanly including many higher-level language features.</li>
+  <li>We will use OpenCL for GPU computation because there exists bindings for it in Rust (as opposed to CUDA).</li>
 </ul>
 
-<h1 id="toc_7">Platform</h1>
-
-<ul>
-<li>We plan to implement our miner in Rust, because it runs nearly as fast as C++ while also cleanly including many higher-level language features.</li>
-<li>We will use OpenCL for GPU computation because there exists bindings for it in Rust (as opposed to CUDA).</li>
-</ul>
-
-<h1 id="toc_8">Proposed Schedule</h1>
-
-<table><thead>
-<tr>
-<th>Week</th>
-<th>What We Plan to Do</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>Mar. 30 - Apr. 5</td>
-<td>Choose project idea, write initial proposal</td>
-</tr>
-<tr>
-<td>Apr. 6 - Apr. 12</td>
-<td>Implement sequential, CPU-based proof of work algorithm</td>
-</tr>
-<tr>
-<td>Apr. 13 - Apr. 19</td>
-<td>Add parallelization by moving prime cluster searching computation to GPU, project checkpoint</td>
-</tr>
-<tr>
-<td>Apr. 20 - Apr. 26</td>
-<td>Improve algorithm and look for more areas of parallelization, parallelize prime verification</td>
-</tr>
-<tr>
-<td>Apr. 27 - May 3</td>
-<td>Implement complete miner</td>
-</tr>
-<tr>
-<td>May 4 - May 9</td>
-<td>Performance testing, bug fixing, final write up</td>
-</tr>
-</tbody></table>
+<h1 id="proposed-schedule">Proposed Schedule</h1>
+<p>| Week              | What We Plan to Do                                                                           |
+|——————-|———————————————————————————————-|
+| Mar. 30 - Apr. 5  | Choose project idea, write initial proposal                                                  |
+| Apr. 6 - Apr. 12  | Implement sequential, CPU-based proof of work algorithm                                      |
+| Apr. 13 - Apr. 19 | Add parallelization by moving prime cluster searching computation to GPU, project checkpoint |
+| Apr. 20 - Apr. 26 | Improve algorithm and look for more areas of parallelization, parallelize prime verification |
+| Apr. 27 - May 3   | Implement complete miner                                                                     |
+| May 4 - May 9     | Performance testing, bug fixing, final write up                                              |</p>
 
 </div>
 
