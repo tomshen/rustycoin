@@ -65,6 +65,8 @@ We compared our parallelized proof of work algorithm to the sequential version w
 
 As shown on the first graph, the speedup obtained is almost linear with under 8 tasks. However, as we continue increasing the number of tasks, speedup drops off significantly due to our limited number of cores. The maximum speedup we observe is about 23 times faster than the sequential version.
 
+After timing the sections of our implementation, we realized that the most time was spent doing wheel factorization. The initial prime sieve and prime cluster verification were responsible for very little time. Therefore, parallelizing the sieve would not improve performance significantly.
+
 There are various factors that we believe limited our speedup. First, handling bignums restricted our ability to use the GPU. There is not a bignum library for Rust on the GPU. In fact, using the GPU for the proof of work algorithm in any language would be difficult, because there is not a fast, comprehensive library for bignums on GPU available. Also, we believe that Rust's higher-level features and relatively immature bignum library prevented us from reaching the speeds obtainable in C++. 
 
 Ultimately, our algorithm is too slow to function as a Riecoin miner, because of the time constraint of 2.5 minutes per block. 
